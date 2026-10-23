@@ -7,7 +7,6 @@
   --ww-accent: #ff9ec4;
   --ww-font: "Gowun Dodum", system-ui, sans-serif;
   --ww-display: "Black Han Sans", sans-serif;
-  position: relative;
   display: inline-block;
   max-width: 100%;
   color: var(--ww-fg);
@@ -59,11 +58,5 @@
 .ww-t { font-family: var(--ww-display); font-size: 17px; }
 .ww-desc { font-size: 11px; }
 .ww-pop { font-size: 11px; color: var(--ww-accent); }
-
-/* 출처(CC BY 4.0 필수): 링크는 버튼 안에 넣을 수 없어 펼친 박스의 아래 여백 위에 겹쳐 둔다 */
-.ww-open .ww-toggle { padding-bottom: 20px; }
-.ww-credit { display: none; position: absolute; right: 14px; bottom: 5px; font-size: 10px; color: var(--ww-fg); opacity: .45; text-decoration: none; }
-.ww-open .ww-credit { display: block; }
-.ww-credit:hover, .ww-credit:focus-visible { opacity: 1; text-decoration: underline; }
 
 @media (prefers-reduced-motion: reduce) { .ww-toggle { transition: none; } }

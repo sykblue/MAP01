@@ -351,6 +351,9 @@ footer{border-top:1px solid var(--page-line);padding:24px 0 40px;color:var(--pag
 .drawer-head{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line);font-weight:700}
 .drawer-head button{border:0;background:none;font-size:20px;cursor:pointer;color:var(--ink)}
 .drawer-body{overflow:auto;flex:1}
+/* 날씨 위젯(weather-widget): 상세 패널 맨 위, 패널 톤에 맞춘다 */
+.drawer-weather{padding:12px 16px}
+.drawer-weather .ww{display:block;--ww-bg:var(--card2);--ww-fg:var(--page-ink);--ww-accent:var(--game-gold)}
 #map{height:220px;background:var(--card2)}
 .detail{padding:16px}
 .detail h2{margin:0;font-size:28px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}

@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Gowun+Dodum&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="kakaoAPI/kakao-map.css">
+<link rel="stylesheet" href="weather-widget/weather.css">
 </head>
 <body class="list-page">
 <header class="nav">
@@ -57,6 +58,7 @@
     티어는 <b>공식 평가가 아니에요.</b> 시장 중심 반경 내 음식점 수, 시장 건물 안 가게 수, 업종 다양성, 개인 가게 비율을 섞어 계산한 재미용 지표입니다.
     "맛집" 목록은 별점이 아니라 시장 안·개인 가게를 업종별로 골라 보여 주는 것이니, 방문 전 영업 여부를 꼭 확인하세요.
     로드뷰는 가게 반경 50m 안의 카카오 로드뷰이며, 안 보이면 네이버 지도 버튼을 눌러 주세요.
+    날씨 데이터: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a> (CC BY 4.0).
   </p>
 </main>
 
@@ -64,6 +66,7 @@
 <aside class="drawer" id="drawer" aria-hidden="true">
   <div class="drawer-head"><span>시장 정보</span><button id="drawerClose" title="닫기 (Esc)">✕</button></div>
   <div class="drawer-body">
+    <div class="drawer-weather" id="weather"></div>
     <div id="map"></div>
     <div class="detail" id="detail"></div>
     <div class="rv-wrap">
@@ -110,6 +113,8 @@
 <script src="tour.js"></script>
 <script src="kakaoAPI/env.js"></script>
 <script src="kakaoAPI/kakao-map.js"></script>
+<script src="weather-widget/env.js"></script>
+<script src="weather-widget/weather.js"></script>
 <script>
 const DATA = window.MARKET_DATA || {meta:{}, markets:[]};
 const MK = DATA.markets;
@@ -305,10 +310,12 @@ addEventListener("keydown", e => { if (e.key === "Escape" && !document.body.clas
 
 // 지도
 KakaoMap.mount($("map"), {markets: MK, tierColor: TIER_COLOR, onSelect: m => select(m)});
+WeatherWidget.mount($("weather"));
 
 function select(m, silent) {
   selected = m;
   openDrawer();
+  WeatherWidget.show(m);
   drawer.querySelector(".drawer-body").scrollTop = 0;
   const d = $("detail");
   const cats = m.topCats.map(([k,v]) => `${k} ${v}`).join(" · ");

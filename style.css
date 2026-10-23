@@ -1,3 +1,5 @@
+/* 한글 기본 폰트: Pretendard (제목은 Black Han Sans, HTML의 Google Fonts 링크) */
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
 /* 공통 토큰·기본값 + main.html 랜딩페이지 (배너 색 어두운 테마). 아래쪽에 티어표(index.html) 스타일 */
 :root{
   --bg:#ffffff; --panel:#fff8f1; --panel2:#fdeee0; --line:#f0dccb;
@@ -9,6 +11,7 @@
   --game-bg:linear-gradient(rgba(10,6,2,.86),rgba(10,6,2,.86)),linear-gradient(110deg,#1a1208 0%,#3d2a10 55%,#140d06 100%);
   /* 어두운 배경 위 글자·선 */
   --page-ink:#f3e6c8; --page-muted:#cdb88a; --page-line:rgba(255,220,150,.16);
+  --font:"Pretendard Variable",Pretendard,-apple-system,BlinkMacSystemFont,system-ui,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
   --game-dim:#cdb88a; --game-sub:#a8925f; --game-gold:#ffd45a;
   /* 카드 영역: 배경보다 조금 밝은 갈색 패널 */
   --card:#2b1e0f; --card2:#3a2913; --card3:#4a3518; --card-line:rgba(255,220,150,.18);
@@ -17,8 +20,8 @@
 .stat,.boss,.gcard-face,.skill,.board a,.pod,.rrow,.drawer,.list-page #bubble{--ink:var(--page-ink);--muted:var(--page-muted);--line:var(--card-line);--panel:var(--card2);--panel2:var(--card3)}
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
-html,body{margin:0;background-color:#0A0602;color:var(--page-ink);font-family:"Gowun Dodum",system-ui,sans-serif}
-body{background:var(--game-bg) fixed;min-height:100vh}
+html,body{margin:0;background-color:#0A0602;color:var(--page-ink);font-family:var(--font)}
+body{background:var(--game-bg) fixed;min-height:100vh;overflow-x:clip}
 h1,h2,h3,.display{font-family:"Black Han Sans",sans-serif;font-weight:400;letter-spacing:.5px}
 a{color:inherit}
 .wrap{max-width:1120px;margin:0 auto;padding:0 20px}
@@ -41,6 +44,8 @@ a{color:inherit}
 .btn-line{background:#fff;color:var(--ink);border:1px solid var(--line)}
 .btn-line:hover{border-color:var(--accent);color:var(--accent)}
 .nav .btn{padding:9px 16px;font-size:14px}
+/* 메뉴 링크 글자색(.nav nav a)이 분홍 버튼에 덮어쓰지 않게 */
+.nav nav a.btn-pig,.nav nav a.btn-pig:hover,.nav nav a.btn-pig:visited{color:#2a0816;font-weight:800}
 
 /* 공통: 작은 카드 숫자 (티어표 상세 패널이 씀) */
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
@@ -237,6 +242,8 @@ footer{border-top:1px solid var(--page-line);padding:24px 0 40px;color:var(--pag
 .chip .medal{width:44px;height:48px;flex:none}
 .chip .all-mark{width:44px;height:44px;flex:none;display:grid;place-items:center;border-radius:50%;background:linear-gradient(145deg,#fff,#e6d3a8);color:#2a1d17;font-family:"Black Han Sans";font-size:14px}
 .chip .cn{display:flex;flex-direction:column;line-height:1.25}
+/* 티어표 랭킹전 헤더: 티어 칩이 한 줄을 가로로 꽉 채운다 (좁으면 내용 폭 유지 + 가로 스크롤) */
+.arena .chip{flex:1 0 max-content}
 .chip .cn b{font-family:"Black Han Sans";font-weight:400;font-size:14px;letter-spacing:.04em}
 .chip .cn em{font-style:normal;font-size:12px;color:#e9dcbc}
 .chip .cn small{font-size:11px;color:var(--game-sub)}
@@ -263,6 +270,44 @@ footer{border-top:1px solid var(--page-line);padding:24px 0 40px;color:var(--pag
 /* 카드 그리드 */
 .list{padding-top:24px;padding-bottom:240px}
 .tier-sec{margin-bottom:56px}
+/* 티어 패널 가로 스와이프: S 오른쪽에 A·B·C·D.
+   트랙만 화면 양 끝까지 넓히고(--gut = 화면 끝~본문 선 거리, .wrap 1120px·좌우 20px 기준),
+   패널은 본문 폭에 맞춰 옆 패널이 여백에 그대로 보이게 한다.
+   --vw는 스크롤바를 뺀 화면 폭 (index.html 스크립트가 넣음) */
+.tier-pager{display:flex;align-items:center;gap:8px;scroll-margin-top:230px}
+@media (max-width:768px){.tier-pager{scroll-margin-top:76px}}
+.tp-tabs{flex:1;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+.tp-tabs::-webkit-scrollbar{display:none}
+.tp-tab{flex:none;display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.06);border:1px solid var(--page-line);color:var(--page-ink);border-radius:999px;padding:6px 12px;font-family:"Black Han Sans";font-size:15px;cursor:pointer;transition:border-color .12s,box-shadow .12s}
+.tp-tab small{font-family:var(--font);font-size:12px;color:var(--page-muted)}
+.tp-tab:hover{border-color:var(--tc)}
+.tp-tab.on{border-color:var(--tc);box-shadow:0 0 0 1px var(--tc),0 0 16px var(--glow)}
+.tp-dot{width:10px;height:10px;border-radius:3px}
+.tp-arrow{flex:none;width:38px;height:38px;border-radius:50%;border:1px solid var(--page-line);background:rgba(255,255,255,.06);color:var(--page-ink);font-size:13px;cursor:pointer}
+.tp-arrow:hover:not(:disabled){border-color:var(--game-gold);color:var(--game-gold)}
+.tp-arrow:disabled{opacity:.3;cursor:default}
+.tier-track{--gut:calc((var(--vw,100vw) - min(1120px, var(--vw,100vw))) / 2 + 20px);position:relative;display:flex;align-items:flex-start;gap:24px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scroll-padding-inline:var(--gut);scrollbar-width:none;margin-inline:calc(var(--gut) * -1);padding:12px var(--gut) 28px}
+.tier-track::-webkit-scrollbar{display:none}
+.tier-track > .tier-sec{flex:0 0 calc((var(--vw,100vw) - var(--gut) * 2 - 24px) / 2);margin-bottom:0;scroll-snap-align:start;container-type:inline-size}
+/* 좁은 화면은 여백이 좁아 패널을 조금 줄여 다음 패널이 보이게 */
+@media (max-width:768px){.tier-track{gap:12px}.tier-track > .tier-sec{flex-basis:calc(var(--vw,100vw) - var(--gut) * 2 - 36px)}}
+/* 티어 하나만 고른 경우: 탭·화살표 없이 꽉 차게 */
+.single .tier-pager{display:none}
+.single .tier-track > .tier-sec{flex-basis:calc(var(--vw,100vw) - var(--gut) * 2)}
+/* 패널이 좁을 때(티어 두 개씩 볼 때): 1위는 위에 크게, 2·3위는 아래 나란히, 랭킹 줄은 한 줄씩.
+   아래쪽 시상대 기본 규칙보다 뒤에 있지 않아 .tier-sec을 붙여 우선한다 */
+@container (max-width:760px){
+  .tier-sec .podium{grid-template-columns:1fr 1fr;gap:12px}
+  .tier-sec .podium .p1{grid-column:1/-1;order:0}.tier-sec .podium .p2{order:1}.tier-sec .podium .p3{order:2}
+  .tier-sec .pod.p1 .pod-art{aspect-ratio:16/8}
+  .tier-sec .pod h3{font-size:19px}.tier-sec .pod.p1 h3{font-size:24px}
+  .tier-sec .place b{font-size:40px}.tier-sec .pod.p1 .place b{font-size:56px}
+  .tier-sec .rank-list{grid-template-columns:1fr}
+  .tier-sec .tier-banner{gap:10px;min-height:108px;padding:24px 14px 14px 18px}
+  .tier-sec .tb-big b{font-size:54px}.tier-sec .tb-big h2{font-size:20px}.tier-sec .tb-count b{font-size:28px}
+  .tier-sec .emblem{width:86px}
+}
+@container (max-width:460px){.tier-sec .podium{grid-template-columns:1fr}}
 /* 티어 등급 배너 */
 .tier-banner{position:relative;display:flex;align-items:center;gap:20px;min-height:132px;padding:26px 24px 18px 32px;margin-bottom:24px;border-radius:18px;background:var(--bn);overflow:hidden;box-shadow:0 14px 32px var(--glow),inset 0 1px 0 rgba(255,255,255,.6)}
 .tier-banner::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.35) 48%,transparent 60%);transform:translateX(-100%);animation:shine 5s ease-in-out infinite;pointer-events:none}
@@ -384,7 +429,7 @@ footer{border-top:1px solid var(--page-line);padding:24px 0 40px;color:var(--pag
 .list-page #bubble b{color:var(--game-gold)}
 .list-page #bubble.hide{opacity:0;transform:translateY(8px)}
 @media (max-width:600px){.list-page #pig{width:150px;height:150px}.list-page #bubble{right:130px;bottom:80px;max-width:calc(100vw - 146px);font-size:13px}.list-page main{padding-bottom:180px}}
-.leaflet-container{font-family:"Gowun Dodum"}
+.leaflet-container{font-family:var(--font)}
 /* 3D 투어 */
 #tour{position:fixed;inset:0;z-index:1500;background:#eaf4fb}
 #tour.hidden{display:none}

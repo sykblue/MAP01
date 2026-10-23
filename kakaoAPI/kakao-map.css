@@ -6,6 +6,10 @@
 .km-s { width: 14px; height: 14px; }
 .km-pick { border-color: #c2185b; background: #ff9ec4; }
 .km-off { opacity: .15; }
+.km-park {
+  width: 18px; height: 18px; border-radius: 5px; border: 1.5px solid #1b1412;
+  background: #4da3ff; color: #08223d; font: 700 11px/15px system-ui, sans-serif; text-align: center;
+}
 
 .km-rv-view { position: absolute; inset: 0; }
 .km-msg {

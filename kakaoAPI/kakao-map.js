@@ -3,7 +3,7 @@
   let state = "idle", failMsg = "";  // idle → loading → ready | failed
   const queue = [];                  // SDK 준비 전에 들어온 호출
   const boxes = new Set();           // 실패 문구를 띄울 컨테이너(지도·로드뷰)
-  let map = null, markers = [], picks = [];
+  let map = null, markers = [], picks = [], parks = [], line = null;
   let rv = null, rvClient = null, rvView = null, rvMsg = null, rvSeq = 0;
 
   const safe = f => { try { f(); } catch (e) { console.error("[KakaoMap]", e); } };
@@ -121,5 +121,40 @@
     });
   }
 
-  window.KakaoMap = {mount, filter, fit, focus, roadview};
+  // 주차장 점: lots = [{n, lat, lon}]. 누르면 onPick(index). 시장을 바꾸면 호스트가 다시 부른다
+  function parking(m, lots, onPick) {
+    run(() => {
+      if (!map) return;
+      parks.forEach(p => p.ov.setMap(null));
+      parks = (lots || []).map((p, i) => {
+        const d = dot(p.lat, p.lon, "km-park", "", p.n || "주차장", 4, () => onPick && onPick(i));
+        d.el.textContent = "P";
+        return d;
+      });
+    });
+  }
+
+  // 선 하나(주차장 → 시장 걷는 길 등): path = [[lat, lon], ...]. null이면 지운다. dashed면 점선
+  function route(path, {color = "#4da3ff", dashed = false, fit: fitTo = false} = {}) {
+    run(() => {
+      if (!map) return;
+      if (line) { line.setMap(null); line = null; }
+      if (!path || path.length < 2) return;
+      const pts = path.map(([lat, lon]) => ll(lat, lon));
+      line = new kakao.maps.Polyline({map, path: pts, strokeWeight: dashed ? 3 : 5, strokeColor: color,
+        strokeOpacity: .9, strokeStyle: dashed ? "shortdash" : "solid"});
+      if (fitTo) {
+        const b = new kakao.maps.LatLngBounds();
+        pts.forEach(p => b.extend(p));
+        map.setBounds(b, 30, 30, 30, 30);
+        if (map.getLevel() < 2) map.setLevel(2);
+      }
+    });
+  }
+
+  // SDK가 준비되면 f 실행 (3D·스카이뷰 투어처럼 같은 SDK를 쓰는 다른 화면용). status()는 "loading"·"ready"·"failed"
+  const ready = f => run(f);
+  const status = () => ({state, message: failMsg});
+
+  window.KakaoMap = {mount, filter, fit, focus, roadview, parking, route, ready, status};
 })();

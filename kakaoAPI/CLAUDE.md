@@ -30,8 +30,14 @@ window.KakaoMap = {
   fit(list),               // list가 다 보이게 맞춤 (최대 level 7까지만 확대)
   focus(market, onPick),   // 시장으로 확대(level 3)하고 가게 점 표시. 가게 점을 누르면 onPick(index)
   roadview(el, lat, lon),  // el 안에 반경 50m 안 카카오 로드뷰
+  parking(market, lots, onPick), // 주차장 P 점 [{n, lat, lon}]. 누르면 onPick(index). 부를 때마다 이전 점은 지운다
+  route(path, {color, dashed, fit}), // 선 하나 [[lat, lon], ...] (주차장 → 시장 걷는 길). null이면 지운다
+  ready(f),                // SDK가 준비되면 f 실행. 스카이뷰 투어(tour.js)가 같은 SDK를 쓰려고 부른다
+  status(),                // {state: "idle"|"loading"|"ready"|"failed", message}
 };
 ```
+
+- 걷는 길 좌표는 호스트(`../index.html`)가 OSM 도보 길찾기(`routing.openstreetmap.de`)에서 받아 `route`로 넘긴다. 모듈은 선만 그린다.
 
 - 시장 객체는 `../data.js`의 `MARKET_DATA.markets` 항목 그대로다. `{name, tier, lat, lon, picks:[{n, c, lat, lon}]}`만 쓴다.
 - `tierColor`는 `{S:"#ff5a5f", ...}`. 호스트의 CSS 변수 값을 넘긴다.
@@ -54,7 +60,8 @@ window.KakaoMap = {
 
 - 지도는 상세 서랍(`#drawer`) 안에 있다. 서랍은 `transform`으로 열려 지도 크기가 바뀌지 않는다.
 - `fit`은 지금 호스트에서 쓰지 않는다(지역 맞춤 기능이 빠짐). 데모에서만 쓴다.
-- `카카오 로드뷰`·`네이버 지도` 바깥 링크는 그대로 둔다. `tour.js`(3D 투어)는 지도 타일이 아니므로 범위 밖이다.
+- `카카오 로드뷰`·`네이버 지도` 바깥 링크는 그대로 둔다.
+- `tour.js`(스카이뷰 투어)는 자체 `kakao.maps.Map`을 만들지만, SDK는 `KakaoMap.ready`로 이 모듈이 불러온 것을 함께 쓴다(SDK를 두 번 넣지 않는다).
 
 ## 키 두 개 (.env)
 
@@ -83,7 +90,7 @@ https://developers.kakao.com → 내 애플리케이션
 
 1. **앱 키**에서 JavaScript 키와 REST API 키를 복사해 `.env`에 넣는다.
 2. **플랫폼 → Web → 사이트 도메인**에 등록한다. 등록하지 않은 주소에서는 지도가 뜨지 않는다.
-   - `http://localhost:5502`, `http://127.0.0.1:5502` (Live Server)
+   - `http://localhost:5502`, `http://127.0.0.1:5502` (Live Server; 포트가 5500이면 그 주소도)
    - Vercel 배포 도메인
 3. **카카오맵 사용 설정**을 켠다(신규 앱은 꺼져 있다).
 
@@ -107,8 +114,7 @@ https://developers.kakao.com → 내 애플리케이션
 
 ## 하지 않는 것
 
-- 장소 검색, 길찾기, 현재 위치(GPS), 마커 클러스터, 지도 종류 전환
-- `tour.js` 3D 지도 교체
+- 장소 검색, 카카오 길찾기 API, 현재 위치(GPS), 마커 클러스터, 지도 종류 전환(2D 서랍 지도)
 - REST 키를 브라우저에서 쓰는 것, 프록시 서버 추가
 
 ## 확인 방법

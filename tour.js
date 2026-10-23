@@ -12,6 +12,8 @@ window.initTour = function (THREE, api) {
   // 경위도 → 장면 좌표 (x: 동쪽, z: 남쪽)
   const CX = 127.8, CY = 36.2, K = 40, COS = Math.cos(CY * Math.PI / 180), LAND = .8;
   const px = lon => (lon - CX) * K * COS, pz = lat => -(lat - CY) * K;
+  const JEJU_Z = pz(33.9);  // 이보다 남쪽이면 제주: 바다를 건너 크게 점프
+  const arcOf = (a, b) => (a.z > JEJU_Z) !== (b.z > JEJU_Z) ? 14 : Math.min(2, a.distanceTo(b) / 40);
 
   const el = document.getElementById("tour");
   const canvas = el.querySelector("canvas");
@@ -112,6 +114,23 @@ window.initTour = function (THREE, api) {
       l.position.copy(top._pos).add(new THREE.Vector3(0, 3.2 + top.score / 45, 0)); scene.add(l);
     });
 
+    // 투어 경로선: 지역 1등 시장을 투어 순서대로 잇는다. 기본 선은 굵기가 1px로 고정돼 튜브로 그린다
+    const route = [];
+    STOPS.forEach((s, i) => {
+      const b = s.list[0]._pos;
+      if (!i) { route.push(b.clone().setY(LAND + .15)); return; }
+      const a = STOPS[i - 1].list[0]._pos, arc = arcOf(a, b);
+      for (let k = 1; k <= 24; k++) {
+        const p = a.clone().lerp(b, k / 24);
+        p.y = LAND + .15 + Math.sin(Math.PI * k / 24) * arc;
+        route.push(p);
+      }
+    });
+    if (route.length > 1) {
+      const tube = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(route), route.length * 2, .12, 6);
+      scene.add(new THREE.Mesh(tube, new THREE.MeshBasicMaterial({color: 0xffb36b, transparent: true, opacity: .85})));
+    }
+
     pig = buildPig(THREE);
     pig.root.scale.setScalar(.9);
     const start = STOPS[0].list[0]._pos;
@@ -147,10 +166,7 @@ window.initTour = function (THREE, api) {
     // 기둥 바로 앞에서 멈춰서 카메라가 돼지 어깨 너머로 시장을 보게 한다
     const dir = top._pos.clone().sub(from).setY(0);
     const to = dir.length() > 3 ? top._pos.clone().sub(dir.normalize().multiplyScalar(2.6)) : top._pos.clone().add(new THREE.Vector3(0, 0, -2.6));
-    const d = from.distanceTo(to);
-    const JEJU_Z = pz(33.9);  // 이보다 남쪽이면 제주: 바다를 건너 크게 점프
-    const sea = (to.z > JEJU_Z) !== (from.z > JEJU_Z);
-    move = {from, to, k: 0, dur: Math.max(1.2, d / 32), arc: sea ? 14 : Math.min(2, d / 40)};
+    move = {from, to, k: 0, dur: Math.max(1.2, from.distanceTo(to) / 32), arc: arcOf(from, to)};
     [...dots.children].forEach((b, j) => b.classList.toggle("on", j === idx));
     card.classList.add("hide");
     pigSay(`${FULL[stop.region]}(으)로 출발~ 꿀꿀! 🐷💨`);

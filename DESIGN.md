@@ -14,3 +14,8 @@ https://www.wanted.co.kr/wdlist
 지역 필터에 지역명 옆에 나오는 개수는 따로 빼줘
 
 티어표가 강조되어야 할거 같아. 이 프로젝트를 만든 사람이 게임처럼 보이고 싶다고 말했었어. 기획의도에 따라 게임 페이지가 느낌이 나게 index.html 수정해줘. 그리고 css 추가는 style.css에 모두 넣어줘.
+
+❯ 카드 영역 컬러도 background-color에 맞게 수정해줘.
+
+index.html 티어별로 세로로 섹션 나눠 있는 걸 가로 스와이프 형태로 S 우측에 A, B, C, D로 나열해줘.
+css로 작업할거면 style.css에 작성해

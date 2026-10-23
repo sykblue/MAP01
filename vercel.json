@@ -1,4 +1,5 @@
 {
   "buildCommand": "python3 weather-widget/make_env.py && python3 kakaoAPI/make_env.py",
-  "outputDirectory": "."
+  "outputDirectory": ".",
+  "redirects": [{ "source": "/", "destination": "/main.html", "permanent": false }]
 }

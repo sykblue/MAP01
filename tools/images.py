@@ -2,7 +2,8 @@
 
 사용: python tools/images.py
 순서: 한국관광공사 TourAPI(키가 등록돼 있을 때) → 한국어 위키백과 대표 이미지 → 위키미디어 공용 파일 검색
-결과: data/images.json, images.js (window.MARKET_IMAGES = {시장이름: {...}})
+결과: data/images.json, images.js (window.MARKET_IMAGES = {"시장이름|시군구": {...}})
+(같은 이름의 시장이 여러 곳이라 시·군·구까지 붙인 키를 쓴다. 예: 못골시장|수원시 팔달구, 못골시장|남구)
 키: .env의 TOUR_KEY, 없으면 SDSC_KEY (공공데이터포털에서 'TourAPI 국문 관광정보 서비스' 활용신청이 돼 있어야 함)
 """
 import hashlib
@@ -21,6 +22,11 @@ CACHE.mkdir(parents=True, exist_ok=True)
 UA = {"User-Agent": "kkul-market-tier/1.0 (educational project; python-urllib)"}
 WIKI_GAP = 1.5  # 위키미디어 요청 간격(초)
 TOUR_API = "https://apis.data.go.kr/B551011/KorService2/searchKeyword2"
+# 위키에서 이름만 같고 다른 대상의 사진이 잡히는 시장 (직접 확인 후 제외)
+SKIP = {
+    "자유시장": "위키백과 '자유시장' 문서는 경제 용어라 무관한 그림이 나옴",
+    "역전시장": "대전 동구 역전시장인데 순천 역전시장 사진이 잡힘",
+}
 
 
 def load_key():
@@ -78,9 +84,18 @@ class Tour:
             return None
         items = (((data.get("response") or {}).get("body") or {}).get("items") or {})
         items = items.get("item") if isinstance(items, dict) else []
-        for it in items or []:
-            if m["name"] in it.get("title", "") and it.get("firstimage"):
-                return {"src": it["firstimage"], "from": "한국관광공사 TourAPI", "credit": "한국관광공사",
+        if isinstance(items, dict):  # 결과가 1건이면 목록이 아니라 객체로 온다
+            items = [items]
+        # 같은 이름의 시장이 여러 도시에 있어 주소의 시·군·구(없으면 시·도 앞 두 글자)까지 맞아야 쓴다
+        sgg = (m.get("sgg") or "").split(" ")[0]
+        place = sgg or (m.get("sido") or m["region"])[:2]
+        # "다이소 ○○시장점"처럼 시장 이름이 붙은 가게(…점)는 빼고, 제목이 시장 이름과 같은 결과를 먼저 고른다
+        same = lambda t: re.sub(r"\s|\(.*?\)", "", t) == m["name"]
+        cands = [it for it in items or []
+                 if m["name"] in it.get("title", "") and not it["title"].rstrip().endswith("점")
+                 and place in (it.get("addr1") or "") and it.get("firstimage")]
+        for it in sorted(cands, key=lambda it: not same(it["title"])):
+            return {"src": it["firstimage"], "from": "한국관광공사 TourAPI", "credit": "한국관광공사",
                         "link": "https://korean.visitkorea.or.kr/"}
         return None
 
@@ -132,9 +147,10 @@ def main():
     tour = Tour(load_key())
     out = {}
     for i, m in enumerate(markets, 1):
-        img = tour.find(m) or from_wikipedia(m) or from_commons(m)
+        # 관광공사 결과는 주소로 확인하므로 SKIP은 위키 사진에만 적용한다
+        img = tour.find(m) or (None if m["name"] in SKIP else from_wikipedia(m) or from_commons(m))
         if img:
-            out[m["name"]] = img
+            out[f'{m["name"]}|{m.get("sgg") or ""}'] = img
         print(f"[{i:3}/{len(markets)}] {m['name']:<12} {img['from'] if img else '-'}", flush=True)
 
     (ROOT / "data" / "images.json").write_text(json.dumps(out, ensure_ascii=False, indent=1), encoding="utf-8")

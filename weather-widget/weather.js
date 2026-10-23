@@ -41,7 +41,8 @@
     mini.append(icon, temp, name, msg);
     hours = el("span", "ww-hours");
     btn.append(mini, hours);
-    const credit = el("a", "ww-credit", "날씨: Open-Meteo.com");
+    const credit = el("a", "ww-credit", "Open-Meteo.com");
+    credit.title = "날씨 데이터: Open-Meteo.com (CC BY 4.0)";
     credit.href = "https://open-meteo.com/";
     credit.target = "_blank";
     credit.rel = "noopener";

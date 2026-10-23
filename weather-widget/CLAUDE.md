@@ -86,18 +86,21 @@ window.WeatherWidget = {
 
 ## 설정 (.env → env.js)
 
-API 주소는 `weather-widget/.env`의 `OPEN_METEO_URL`에 둔다. 쿼리 파라미터는 위젯 로직이므로 코드에 둔다.
+API 주소는 **루트 `.env`**의 `OPEN_METEO_URL`에 둔다(형식은 루트 `.env.example`). 쿼리 파라미터는 위젯 로직이므로 코드에 둔다.
 
 - 브라우저는 `.env`를 직접 읽지 못한다. Live Server는 점(.)으로 시작하는 파일을 404로 막고, `file://`에서는 `fetch`가 안 된다.
 - 그래서 `make_env.py`가 `.env`를 읽어 `env.js`를 만든다. 상위 `tools/fetch.py`가 `data.js`를 만드는 것과 같은 방식이다.
   - 실행: `python weather-widget/make_env.py`
   - 출력: `weather-widget/env.js` → `window.WEATHER_ENV = {"OPEN_METEO_URL": "..."};`
   - 표준 라이브러리만 쓴다. `KEY=VALUE` 줄만 읽고 빈 줄과 `#` 주석은 건너뛴다.
-  - `.env`가 없으면 "`.env.example`을 `.env`로 복사하세요"를 출력하고 종료 코드 1로 끝난다.
+  - **허용 목록(`PUBLIC_KEYS`)에 있는 키만 옮긴다.** 루트 `.env`에는 상가정보 키 `SDSC_KEY` 같은 비밀 값도 있기 때문이다. 비밀 값은 허용 목록에 절대 넣지 않는다.
+  - 값은 루트 `.env`에서 먼저 찾고, 없으면 같은 이름의 환경변수에서 찾는다. 둘 다 없으면 안내를 출력하고 종료 코드 1로 끝난다.
 - `weather.js`는 `window.WEATHER_ENV.OPEN_METEO_URL`을 읽는다. 값이 없으면 요청하지 않고 위젯에 "설정 없음(env.js)"을 표시한다. 주소를 코드에 기본값으로 박아 두지 않는다.
-- **`.env`에 비밀 값을 넣지 않는다.** `env.js`는 브라우저에 그대로 보인다. 상위 폴더의 `../.env`(상가정보 키 `SDSC_KEY`)는 읽지도 섞지도 않는다.
-- git: `.env`와 `env.js`는 `weather-widget/.gitignore`로 제외하고, `.env.example`만 커밋한다.
-- 배포: `env.js`는 git에 없다. 따라서 배포 환경에서도 `make_env.py`를 실행해야 한다(빌드 단계에 넣거나, 배포 전에 생성).
+- `env.js`는 브라우저에 그대로 보인다. 그래서 공개해도 되는 값만 담는다.
+- git: 루트 `.env`와 `env.js`는 루트 `.gitignore`로 제외되어 있고, `.env.example`만 커밋한다.
+- 배포(Vercel): `env.js`와 `.env`가 git에 없으므로 빌드 때 만든다.
+  - 루트 `vercel.json`의 `buildCommand`가 `python3 weather-widget/make_env.py`를 실행한다.
+  - 값은 Vercel 프로젝트 환경변수 `OPEN_METEO_URL`(타입 Config)에 등록해 둔다. `make_env.py`는 `.env`가 없거나 값이 비면 환경변수에서 읽는다.
 
 ## 만드는 규칙
 
@@ -105,8 +108,7 @@ API 주소는 `weather-widget/.env`의 `OPEN_METEO_URL`에 둔다. 쿼리 파라
 - 파일 구성
   - `weather.js`: 위젯 로직
   - `weather.css`: 위젯 스타일
-  - `make_env.py`: `.env` → `env.js` 생성
-  - `.env.example`(커밋), `.env`·`env.js`(gitignore)
+  - `make_env.py`: 루트 `.env` → `env.js` 생성
   - `demo.html`: 확인용 페이지
 - 모든 클래스는 `ww-` 접두사를 붙이고 위젯 루트 아래로 범위를 한정한다. 호스트 스타일과 서로 섞이지 않게 하려는 것이다.
 - 색과 폰트는 위젯 루트의 CSS 변수(`--ww-bg`, `--ww-fg`, `--ww-accent`, `--ww-font`)로 둔다. 호스트가 덮어써서 페이지 톤에 맞출 수 있다. 기본값은 상위 프로젝트 톤(분홍 돼지 테마, Black Han Sans)에 맞춘다.
@@ -131,7 +133,7 @@ API 주소는 `weather-widget/.env`의 `OPEN_METEO_URL`에 둔다. 쿼리 파라
 
 `demo.html`은 `../data.js`를 불러온다. 시장 몇 곳을 고르는 버튼을 두고, 버튼을 누르면 `WeatherWidget.show`를 호출한다.
 
-1. `.env.example`을 `.env`로 복사하고 `python weather-widget/make_env.py`를 실행한다.
+1. 루트 `.env`에 `OPEN_METEO_URL`이 있는지 확인하고 `python weather-widget/make_env.py`를 실행한다.
 2. `weather-widget/demo.html`을 Live Server(포트 5502)나 `file://`로 연다.
 3. 시장을 고르면 작은 위젯에 그 시장의 현재 기온이 나온다.
 4. 누르면 4칸 시간별 날씨와 출처가 펼쳐지고, 다시 누르면 접힌다. Tab으로 이동해 Enter를 눌러도 같다.

@@ -1,0 +1,433 @@
+/* 공통 토큰·기본값 + main.html 랜딩페이지 (배너 색 어두운 테마). 아래쪽에 티어표(index.html) 스타일 */
+:root{
+  --bg:#ffffff; --panel:#fff8f1; --panel2:#fdeee0; --line:#f0dccb;
+  --ink:#2a1d17; --muted:#7a6253; --accent:#e8781f; --pig:#ff9ec4; --pig-deep:#c2185b;
+  /* 티어 색 = 메달 색 (S 킹·A 다이아·B 플래티넘·C 골드·D 실버) */
+  --S:#ff4d5e; --A:#ff8fbf; --B:#8f8cff; --C:#ffc23d; --D:#b3c0dc;
+  --shadow:0 10px 30px rgba(120,70,40,.10);
+  /* 페이지 배경 #0A0602. 같은 색 막(.86)을 S티어 배너 그라데이션 위에 덮어 아주 약하게만 보이게 */
+  --game-bg:linear-gradient(rgba(10,6,2,.86),rgba(10,6,2,.86)),linear-gradient(110deg,#1a1208 0%,#3d2a10 55%,#140d06 100%);
+  /* 어두운 배경 위 글자·선 */
+  --page-ink:#f3e6c8; --page-muted:#cdb88a; --page-line:rgba(255,220,150,.16);
+  --game-dim:#cdb88a; --game-sub:#a8925f; --game-gold:#ffd45a;
+  /* 카드 영역: 배경보다 조금 밝은 갈색 패널 */
+  --card:#2b1e0f; --card2:#3a2913; --card3:#4a3518; --card-line:rgba(255,220,150,.18);
+}
+/* 카드 안에서는 글자·선·안쪽 패널 토큰을 어두운 테마 값으로 바꾼다 */
+.stat,.boss,.gcard-face,.skill,.board a,.pod,.rrow,.drawer,.list-page #bubble{--ink:var(--page-ink);--muted:var(--page-muted);--line:var(--card-line);--panel:var(--card2);--panel2:var(--card3)}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+html,body{margin:0;background-color:#0A0602;color:var(--page-ink);font-family:"Gowun Dodum",system-ui,sans-serif}
+body{background:var(--game-bg) fixed;min-height:100vh}
+h1,h2,h3,.display{font-family:"Black Han Sans",sans-serif;font-weight:400;letter-spacing:.5px}
+a{color:inherit}
+.wrap{max-width:1120px;margin:0 auto;padding:0 20px}
+
+/* 상단 바 */
+.nav{position:sticky;top:0;z-index:50;background:rgba(10,6,2,.88);backdrop-filter:blur(8px);border-bottom:1px solid var(--page-line)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;height:64px}
+.logo{font-family:"Black Han Sans";font-size:22px;text-decoration:none}
+.logo span{color:var(--pig)}
+.nav nav{display:flex;gap:20px;align-items:center}
+.nav nav a{text-decoration:none;color:var(--page-muted);font-size:15px}
+.nav nav a:hover{color:#fff}
+@media (max-width:720px){.nav nav a:not(.btn){display:none}}
+
+/* 버튼 */
+.btn{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:12px 20px;font:inherit;font-weight:700;text-decoration:none;cursor:pointer;border:0;transition:transform .12s,box-shadow .12s}
+.btn-pig{background:var(--pig);color:#3a0f22;box-shadow:0 4px 0 var(--pig-deep)}
+.btn-pig:hover{transform:translateY(-1px)}
+.btn-pig:active{transform:translateY(2px);box-shadow:0 2px 0 var(--pig-deep)}
+.btn-line{background:#fff;color:var(--ink);border:1px solid var(--line)}
+.btn-line:hover{border-color:var(--accent);color:var(--accent)}
+.nav .btn{padding:9px 16px;font-size:14px}
+
+/* 공통: 작은 카드 숫자 (티어표 상세 패널이 씀) */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center}
+.stat b{display:block;font-family:"Black Han Sans";font-weight:400;font-size:26px}
+.stat span{font-size:12px;color:var(--muted)}
+.badge{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:7px;color:#2a1d17;font-family:"Black Han Sans";font-size:14px}
+footer{border-top:1px solid var(--page-line);padding:24px 0 40px;color:var(--page-muted);font-size:12px;line-height:1.7}
+
+/* ===== 랜딩 게임 페이지 (main.html) ===== */
+/* 게임 버튼 */
+.g-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:0;border-radius:12px;padding:14px 22px;font:inherit;font-weight:800;text-decoration:none;cursor:pointer;letter-spacing:.04em;transition:transform .12s,box-shadow .12s,filter .12s}
+.g-btn.start{background:linear-gradient(180deg,#ffe27a,#ffb020);color:#3a2300;box-shadow:0 5px 0 #b86e00,0 0 26px rgba(255,190,40,.45)}
+.g-btn.start:hover{filter:brightness(1.06);transform:translateY(-1px)}
+.g-btn.start:active{transform:translateY(3px);box-shadow:0 2px 0 #b86e00}
+.g-btn.ghost{background:rgba(255,255,255,.08);color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.35)}
+.g-btn.ghost:hover{background:rgba(255,255,255,.16)}
+.g-btn.ghost-dark{background:#2a1c0a;color:#ffd45a}
+.g-btn.ghost-dark:hover{background:#3d2a10}
+.g-btn.mini{width:100%;padding:10px 14px;font-size:14px;background:var(--game-gold);color:#2a1600;border-radius:10px}
+.g-btn.mini:hover{background:var(--tc,var(--game-gold));color:#1b1412}
+.g-en{display:block;font-size:11px;font-weight:800;letter-spacing:.24em;color:var(--game-gold);margin-bottom:8px}
+
+/* 시작 화면 (게임 로비) */
+.lobby{position:relative;overflow:hidden;color:#fff;background:radial-gradient(700px 320px at 80% 30%,rgba(255,190,40,.18),transparent 70%)}
+.lobby::before{content:"";position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.5) 1px,transparent 1.5px);background-size:46px 46px;opacity:.12;pointer-events:none}
+.lobby .wrap{position:relative;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:24px;align-items:center;padding-top:48px;padding-bottom:48px}
+@media (max-width:860px){.lobby .wrap{grid-template-columns:1fr;padding-top:32px}}
+.g-title{font-size:clamp(40px,6.4vw,72px);line-height:1.05;margin:14px 0 16px;text-shadow:0 4px 0 rgba(0,0,0,.35)}
+.g-title span{background:linear-gradient(180deg,#fff1b0,#ffb020);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 18px rgba(255,190,40,.35))}
+.g-lead{color:var(--game-dim);font-size:16px;line-height:1.7;max-width:500px;margin:0 0 24px}
+.g-cta{display:flex;flex-wrap:wrap;gap:10px}
+.hud{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:30px;max-width:540px}
+@media (max-width:520px){.hud{grid-template-columns:repeat(2,1fr)}}
+.hud div{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:10px 12px;display:grid;grid-template-columns:auto 1fr;column-gap:8px;align-items:center}
+.hud i{grid-row:span 2;font-style:normal;font-size:22px}
+.hud b{font-family:"Black Han Sans";font-weight:400;font-size:22px;line-height:1;color:#ffd45a}
+.hud span{font-size:11px;color:var(--game-dim)}
+.npc{position:relative;justify-self:center;width:100%;max-width:420px}
+.game-page .pig-stage{position:relative;aspect-ratio:1/1;width:100%}
+.game-page .pig-stage::before{content:"";position:absolute;left:12%;right:12%;bottom:6%;height:18%;border-radius:50%;background:radial-gradient(closest-side,rgba(255,212,90,.55),rgba(255,158,196,.25) 60%,transparent);filter:blur(2px)}
+.game-page .pig-stage canvas{position:relative;width:100%;height:100%;display:block;cursor:pointer}
+.dialog{position:relative;margin-top:-28px;background:rgba(10,6,2,.94);border:2px solid #ffd45a;border-radius:14px;padding:16px 16px 14px;box-shadow:0 0 0 4px rgba(255,212,90,.15),0 12px 30px rgba(0,0,0,.35);cursor:pointer}
+.dialog .who{position:absolute;left:14px;top:-14px;background:#ffd45a;color:#2a1600;font-weight:800;font-size:13px;border-radius:6px;padding:3px 10px}
+.dialog .who small{font-weight:700;opacity:.7;margin-left:4px}
+.dialog p{margin:6px 0 0;font-size:15px;line-height:1.6;min-height:48px;color:#fff}
+.dialog p b{color:#ffd45a}
+.dialog .next{position:absolute;right:12px;bottom:6px;font-size:12px;color:#ffd45a;animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:0}}
+
+/* 섹션 공통 */
+.g-sec{padding:72px 0}
+.g-sec.alt{background:rgba(255,255,255,.03);border-top:1px solid var(--page-line);border-bottom:1px solid var(--page-line)}
+.g-sec.dark{color:#fff;background:rgba(0,0,0,.18)}
+.g-head{margin-bottom:24px}
+.g-head h2,.gacha-info h2{font-size:clamp(28px,4vw,40px);margin:0 0 8px}
+.g-head p{margin:0;color:var(--page-muted);line-height:1.6}
+
+/* 티어 도감 */
+.g-strip{background:rgba(0,0,0,.28);border:1px solid var(--page-line);border-radius:18px;padding:16px 14px 0;margin-bottom:24px}
+.g-strip .chips{padding-bottom:16px}
+.bosses{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+@media (max-width:900px){.bosses{grid-template-columns:1fr 1fr}}
+@media (max-width:600px){.bosses{grid-template-columns:1fr}}
+.boss{background:var(--card);color:var(--ink);border-radius:18px;overflow:hidden;box-shadow:0 0 0 2px var(--tc),0 12px 28px var(--glow);display:flex;flex-direction:column;transition:transform .15s}
+.boss:hover{transform:translateY(-4px)}
+.boss-top{position:relative;height:120px;background:var(--bn)}
+.boss-top img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.boss-no{position:absolute;left:12px;top:12px;background:#1a1208;color:#ffd45a;font-size:11px;font-weight:800;letter-spacing:.14em;border-radius:6px;padding:4px 9px}
+.boss:first-child .boss-no{background:linear-gradient(90deg,#ff4d5e,#ff8a3d);color:#fff}
+.boss-rank{position:absolute;right:12px;bottom:12px;background:rgba(255,255,255,.92);color:#2a1d17;font-size:12px;font-weight:800;border-radius:6px;padding:3px 8px}
+.boss-body{padding:16px;display:flex;flex-direction:column;gap:8px;flex:1}
+.boss h3{margin:0;font-size:24px}
+.boss-loc{font-size:13px;color:var(--muted)}
+.boss-loc b{color:var(--pig)}
+.boss-score{display:flex;align-items:baseline;gap:2px;margin-bottom:2px}
+.boss-score b{font-family:"Black Han Sans";font-weight:400;font-size:34px;line-height:1}
+.boss-score span{font-size:13px;color:var(--muted)}
+.sbar{display:grid;grid-template-columns:64px 1fr 52px;gap:8px;align-items:center;font-size:12px}
+.sbar span{color:var(--muted)}
+.sbar div{height:8px;border-radius:999px;background:var(--panel2);overflow:hidden}
+.sbar i{display:block;height:100%;border-radius:inherit;background:var(--tc)}
+.sbar b{text-align:right}
+.boss h4,.gcard h4{margin:10px 0 0;font-size:14px}
+.loot{list-style:none;margin:0 0 6px;padding:0;display:grid;gap:6px}
+.loot li{display:flex;align-items:center;gap:8px;background:var(--panel);border-radius:10px;padding:8px 10px;font-size:13px}
+.loot li b{flex:none}
+.loot li span{color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.loot li em{margin-left:auto;flex:none;font-style:normal;font-size:11px;background:var(--pig);color:#3a0f22;border-radius:6px;padding:2px 6px}
+.loot li.none{color:var(--muted)}
+.boss .g-btn.mini{margin-top:auto}
+.more{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-top:22px;padding:16px 18px;border:1px dashed var(--page-line);border-radius:14px;color:var(--page-muted);font-size:14px}
+
+/* 시장 뽑기 */
+.gacha{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:40px;align-items:center}
+@media (max-width:860px){.gacha{grid-template-columns:1fr}}
+.gacha-stage{display:flex;flex-direction:column;align-items:center;gap:22px}
+.gcard{width:min(340px,100%);min-height:440px;border-radius:20px;perspective:800px;transition:transform .45s}
+.gcard.flip{transform:rotateY(90deg)}
+.gcard-back{height:440px;border-radius:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:repeating-linear-gradient(45deg,#3d2a10 0 14px,#2e1f0b 14px 28px);border:3px solid #ffd45a;box-shadow:0 0 30px rgba(255,212,90,.25)}
+.gcard-back b{font-family:"Black Han Sans";font-weight:400;font-size:110px;line-height:1;color:#ffd45a;text-shadow:0 0 24px rgba(255,212,90,.6);animation:float 2.4s ease-in-out infinite}
+.gcard-back span{color:var(--game-dim);font-size:14px}
+.gcard-face{background:var(--card);color:var(--ink);border-radius:20px;padding:18px 18px 16px;box-shadow:0 0 0 3px var(--tc),0 0 40px var(--glow);animation:pop .35s ease-out}
+.gcard.t-S .gcard-face{box-shadow:0 0 0 3px #ffd45a,0 0 60px rgba(255,190,40,.7)}
+@keyframes pop{from{transform:scale(.92);opacity:.4}}
+.gc-medal{width:96px;margin:-6px auto 0}
+.gc-medal .medal{display:block;width:100%;height:auto}
+.gc-rare{display:block;text-align:center;font-size:12px;font-weight:800;color:var(--game-gold);margin-top:2px}
+.gcard h3{margin:4px 0 2px;text-align:center;font-size:28px}
+.gc-loc,.gc-sig{text-align:center;font-size:13px;color:var(--muted)}
+.gc-sig b{color:var(--pig)}
+.gacha-info p{color:var(--game-dim);line-height:1.7;margin:0 0 24px}
+.gacha-info h3{font-size:18px;margin:0 0 12px}
+.rates{list-style:none;margin:0;padding:0;display:grid;gap:8px;max-width:440px}
+.rates li{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:6px 14px 6px 6px}
+.rates .medal{width:40px;height:44px;flex:none}
+.rates span{display:flex;flex-direction:column;line-height:1.3}
+.rates span b{font-family:"Black Han Sans";font-weight:400;letter-spacing:.04em}
+.rates span small{font-size:12px;color:var(--game-dim)}
+.rates em{margin-left:auto;font-style:normal;font-family:"Black Han Sans";font-size:20px;color:#ffd45a}
+
+/* 게임 룰 */
+.skills{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+@media (max-width:900px){.skills{grid-template-columns:1fr 1fr}}
+.skill{position:relative;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:16px;padding:18px 16px 16px;box-shadow:var(--shadow)}
+.skill i{font-style:normal;font-size:28px}
+.skill b{display:block;margin-top:8px;font-size:17px}
+.skill .w{position:absolute;right:14px;top:14px;font-family:"Black Han Sans";font-size:26px;color:var(--accent)}
+.skill p{margin:6px 0 0;font-size:13px;line-height:1.55;color:var(--muted)}
+.ladder{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-top:22px}
+@media (max-width:700px){.ladder{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.rung{display:flex;flex-direction:column;align-items:center;gap:2px;padding:12px 8px;border-radius:14px;background:var(--bn);box-shadow:0 8px 20px var(--glow)}
+.rung .medal{width:56px;height:60px}
+.rung b{font-family:"Black Han Sans";font-weight:400;font-size:22px;color:var(--tx)}
+.rung span{font-size:11px;font-weight:800;letter-spacing:.14em;color:var(--sub)}
+.rung em{font-style:normal;font-size:13px;font-weight:700;color:var(--tx)}
+
+/* 지역 랭킹 보드 */
+.board{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.board a{display:grid;grid-template-columns:40px 48px minmax(0,1fr) minmax(80px,220px) 52px;gap:12px;align-items:center;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:14px;padding:8px 16px 8px 12px;text-decoration:none;transition:transform .12s,box-shadow .12s}
+.board a:hover{transform:translateX(4px);box-shadow:var(--shadow)}
+.board .pos{font-family:"Black Han Sans";font-size:22px;text-align:center;color:var(--muted)}
+.board li:nth-child(-n+3) .pos{color:#e0a22a}
+.board .bm .medal{width:44px;height:48px;display:block}
+.board .who{display:flex;flex-direction:column;min-width:0}
+.board .who b{font-size:16px}
+.board .who small{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.board .pts{height:10px;border-radius:999px;background:var(--panel2);overflow:hidden}
+.board .pts i{display:block;height:100%;border-radius:inherit}
+.board .sc{font-family:"Black Han Sans";font-weight:400;font-size:20px;text-align:right}
+@media (max-width:600px){.board a{grid-template-columns:28px 40px minmax(0,1fr) 44px}.board .pts{display:none}}
+
+/* 마지막 CTA */
+.continue{text-align:center;padding:80px 0;color:#fff;background:radial-gradient(600px 260px at 50% 0%,rgba(255,190,40,.18),transparent 70%)}
+.continue .g-en{color:#ffd45a;animation:blink 1.2s steps(2) infinite}
+.continue h2{font-size:clamp(26px,4vw,40px);margin:0 0 26px;line-height:1.3}
+@media (prefers-reduced-motion:reduce){.dialog .next,.continue .g-en,.gcard-back b{animation:none}.gcard{transition:none}}
+
+/* ===== 티어표 (index.html) ===== */
+/* #pig·#bubble은 main.html에도 있어 .list-page 아래로 한정 */
+.list-page{min-height:100vh}
+/* 상단 메뉴: 현재 페이지 밑줄 */
+.nav nav a.on{color:#fff;font-weight:700;box-shadow:inset 0 -2px 0 var(--game-gold);padding:21px 0}
+/* 티어별 테마 (배너·칩·카드 공통). --l1/--l2 큰 글자 그라데이션, --glow 빛 */
+.t-S{--bn:linear-gradient(110deg,#1a1208 0%,#3d2a10 55%,#140d06 100%);--l1:#fff1b0;--l2:#e0a22a;--tx:#f7e2b0;--sub:#bfa36a;--tab:#e0a22a;--tabtx:#1a1208;--glow:rgba(224,162,42,.4)}
+.t-A{--bn:linear-gradient(110deg,#fff6f9 0%,#ffd6e3 55%,#ff9fbd 100%);--l1:#ff4f86;--l2:#a3123f;--tx:#8c1036;--sub:#c97a93;--tab:#ff4f86;--tabtx:#fff;--glow:rgba(255,79,134,.3)}
+.t-B{--bn:linear-gradient(110deg,#f8f7ff 0%,#dcdbff 55%,#aeb0ff 100%);--l1:#6f6cff;--l2:#2a23a8;--tx:#2a23a8;--sub:#8784c4;--tab:#6f6cff;--tabtx:#fff;--glow:rgba(111,108,255,.3)}
+.t-C{--bn:linear-gradient(110deg,#fffbef 0%,#ffe7a6 55%,#ffc65a 100%);--l1:#ff9a1f;--l2:#a5520a;--tx:#8a450a;--sub:#c4934d;--tab:#f59e0b;--tabtx:#fff;--glow:rgba(245,158,11,.3)}
+.t-D{--bn:linear-gradient(110deg,#fbfcff 0%,#e2e8f5 55%,#b9c5de 100%);--l1:#8a9cc4;--l2:#3c4a6e;--tx:#34405f;--sub:#8592ad;--tab:#8a9cc4;--tabtx:#fff;--glow:rgba(110,130,180,.28)}
+.t-all{--glow:rgba(255,255,255,.3)}
+/* 티어 색: --tc(카드 테두리·막대), 배경·글자 클래스 */
+.t-S{--tc:var(--S)}.t-A{--tc:var(--A)}.t-B{--tc:var(--B)}.t-C{--tc:var(--C)}.t-D{--tc:var(--D)}
+.tier-bg-S{background:var(--S)}.tier-bg-A{background:var(--A)}.tier-bg-B{background:var(--B)}.tier-bg-C{background:var(--C)}.tier-bg-D{background:var(--D)}
+.tier-fg-S{color:var(--S)}.tier-fg-A{color:var(--A)}.tier-fg-B{color:var(--B)}.tier-fg-C{color:var(--C)}.tier-fg-D{color:var(--D)}
+
+/* 랭킹전 헤더 (게임 로비 느낌의 어두운 패널) */
+.arena{background:radial-gradient(600px 260px at 85% 0%,rgba(255,190,40,.18),transparent 70%);color:#fff;padding:32px 0 8px}
+.arena-head{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;margin-bottom:20px}
+.season{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.18em;color:#ffd45a;border:1px solid rgba(255,212,90,.4);border-radius:4px;padding:4px 10px;margin-bottom:12px}
+.list-title{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.list-title h1{margin:0;font-size:clamp(26px,3.8vw,38px);line-height:1.2}
+.list-title .cnt{font-family:"Black Han Sans";font-size:20px;color:#ffd45a}
+.arena p{margin:0;color:var(--game-dim);font-size:14px}
+.dist-box{flex:0 1 320px;min-width:220px}
+.dist-lbl{display:block;font-size:12px;color:var(--game-dim);margin-bottom:6px}
+.dist{display:flex;height:22px;border-radius:6px;overflow:hidden;box-shadow:0 0 0 1px rgba(255,255,255,.15)}
+.dist span{display:flex;align-items:center;justify-content:center;min-width:16px;font-family:"Black Han Sans";font-size:12px;color:#2a1d17}
+/* 티어 선택: 메달 타일 */
+.chips{display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;padding:4px 2px 22px}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:#fff;border-radius:14px;padding:6px 14px 6px 6px;cursor:pointer;font:inherit;text-align:left;transition:transform .12s,background .12s,box-shadow .12s}
+.chip:hover{background:rgba(255,255,255,.12);transform:translateY(-2px)}
+.chip.on{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.6);box-shadow:0 0 0 1px rgba(255,255,255,.4),0 0 22px var(--glow)}
+.chip .medal{width:44px;height:48px;flex:none}
+.chip .all-mark{width:44px;height:44px;flex:none;display:grid;place-items:center;border-radius:50%;background:linear-gradient(145deg,#fff,#e6d3a8);color:#2a1d17;font-family:"Black Han Sans";font-size:14px}
+.chip .cn{display:flex;flex-direction:column;line-height:1.25}
+.chip .cn b{font-family:"Black Han Sans";font-weight:400;font-size:14px;letter-spacing:.04em}
+.chip .cn em{font-style:normal;font-size:12px;color:#e9dcbc}
+.chip .cn small{font-size:11px;color:var(--game-sub)}
+/* 필터 바 */
+.filter-bar{position:sticky;top:64px;z-index:40;background:rgba(10,6,2,.92);backdrop-filter:blur(8px);border-top:1px solid var(--page-line);border-bottom:1px solid var(--page-line)}
+.filter-bar .wrap{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding-top:12px;padding-bottom:12px}
+.fbtn{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.06);border:1px solid var(--page-line);color:var(--page-ink);border-radius:8px;padding:8px 12px;font:inherit;font-size:14px;cursor:pointer}
+.fbtn:hover{border-color:var(--game-gold)}
+.fbtn.on{border-color:var(--game-gold);color:var(--game-gold);font-weight:700}
+/* 지역 칩: 넘치면 다음 줄로, 개수는 오른쪽 배지 */
+.region-chips{flex:1 1 100%;display:flex;flex-wrap:wrap;gap:6px}
+/* 좁은 화면에서는 칩이 여러 줄이라 필터 바를 위에 고정하지 않는다 */
+@media (max-width:768px){.filter-bar{position:static}}
+.rchip{flex:none;display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.06);border:1px solid var(--page-line);color:var(--page-ink);border-radius:999px;padding:6px 6px 6px 14px;font:inherit;font-size:14px;cursor:pointer;transition:background .12s,border-color .12s}
+.rchip:hover{border-color:var(--game-gold)}
+.rchip .rcnt{min-width:24px;text-align:center;background:rgba(255,212,90,.12);color:var(--game-gold);border-radius:999px;padding:2px 7px;font-size:12px;font-weight:700}
+.rchip.on{background:var(--game-gold);border-color:var(--game-gold);color:#2a1600;font-weight:700}
+.rchip.on .rcnt{background:rgba(42,22,0,.15);color:#2a1600}
+.search{flex:1 1 180px;max-width:280px;background:rgba(255,255,255,.06);border:1px solid var(--page-line);color:var(--page-ink);border-radius:8px;padding:8px 12px;font:inherit;font-size:14px}
+.search:focus{outline:none;border-color:var(--game-gold)}
+.search::placeholder{color:var(--page-muted)}
+.filter-bar option{color:#2a1d17;background:#fff}
+.sort{margin-left:auto;background:transparent;border:0;color:var(--page-ink);font:inherit;font-size:14px;font-weight:700;cursor:pointer;padding:8px 4px}
+/* 카드 그리드 */
+.list{padding-top:24px;padding-bottom:240px}
+.tier-sec{margin-bottom:56px}
+/* 티어 등급 배너 */
+.tier-banner{position:relative;display:flex;align-items:center;gap:20px;min-height:132px;padding:26px 24px 18px 32px;margin-bottom:24px;border-radius:18px;background:var(--bn);overflow:hidden;box-shadow:0 14px 32px var(--glow),inset 0 1px 0 rgba(255,255,255,.6)}
+.tier-banner::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.35) 48%,transparent 60%);transform:translateX(-100%);animation:shine 5s ease-in-out infinite;pointer-events:none}
+@keyframes shine{0%,60%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+.tier-banner .tab{position:absolute;left:0;top:0;padding:3px 12px;border-radius:18px 0 12px 0;background:var(--tab);color:var(--tabtx);font-size:11px;font-weight:800;letter-spacing:.12em}
+.tb-big{display:flex;align-items:center;gap:14px}
+.tb-big b{font-family:"Black Han Sans";font-weight:400;font-size:72px;line-height:1;padding-right:6px;transform:skewX(-10deg);background:linear-gradient(180deg,var(--l1),var(--l2));-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 3px 0 rgba(0,0,0,.12))}
+.tb-big i{width:1px;height:22px;background:var(--sub)}
+.tb-big h2{margin:0;font-size:24px;color:var(--tx)}
+.tb-en{margin-top:6px;font-size:10px;font-weight:700;letter-spacing:.22em;color:var(--sub)}
+.tb-count{margin-left:auto;color:var(--tx);font-size:14px;white-space:nowrap}
+.tb-count b{font-family:"Black Han Sans";font-weight:400;font-size:34px;margin-right:2px}
+.emblem{flex:none;width:112px;margin:-14px 0 -12px;animation:float 3s ease-in-out infinite;filter:drop-shadow(0 8px 12px var(--glow))}
+.emblem .medal{display:block;width:100%;height:auto}
+@keyframes float{50%{transform:translateY(-6px)}}
+@media (max-width:600px){
+  .tier-banner{gap:10px;min-height:104px;padding:24px 12px 14px 16px}
+  .tb-big{gap:8px}.tb-big b{font-size:48px}.tb-big h2{font-size:18px}.tb-big i{display:none}
+  .tb-en{display:none}.tb-count b{font-size:24px}
+  .emblem{width:78px}
+}
+@media (prefers-reduced-motion:reduce){.tier-banner::after,.emblem{animation:none}}
+.photo{position:relative;margin:0 0 12px;border-radius:12px;overflow:hidden;aspect-ratio:16/10;background:var(--panel)}
+.photo img{width:100%;height:100%;object-fit:cover;display:block}
+.photo figcaption{position:absolute;left:0;right:0;bottom:0;padding:16px 10px 6px;font-size:11px;color:#fff;background:linear-gradient(transparent,rgba(0,0,0,.55))}
+.photo figcaption a{color:#fff}
+.fav{position:absolute;right:8px;top:8px;width:34px;height:34px;border:0;border-radius:50%;background:rgba(255,255,255,.88);cursor:pointer;font-size:17px;line-height:1;color:#7a6253}
+.fav:hover,.fav.on{color:var(--pig-deep)}
+.rrow .fav:hover,.rrow .fav.on{color:var(--pig)}
+.empty-list{text-align:center;color:var(--page-muted);padding:60px 0}
+.note{color:var(--page-muted);font-size:12px;line-height:1.6;margin:48px 0 0}
+/* 시장 카드: 티어 안 1~3위 시상대 (1위 가운데·크게) */
+.podium{display:grid;grid-template-columns:1fr 1.15fr 1fr;gap:16px;align-items:end;margin-bottom:18px}
+.podium .p1{order:2}.podium .p2{order:1}.podium .p3{order:3}
+@media (max-width:768px){.podium{grid-template-columns:1fr}.podium .p1,.podium .p2,.podium .p3{order:0}.pod-art,.pod.p1 .pod-art{aspect-ratio:16/8}}
+.pod{--pc:#e0a22a;position:relative;background:var(--card);color:var(--ink);border-radius:18px;overflow:hidden;cursor:pointer;box-shadow:0 0 0 2px var(--pc),0 14px 30px var(--glow);transition:transform .15s}
+.pod.p1{--pc:#ffd45a;box-shadow:0 0 0 3px var(--pc),0 0 40px rgba(255,212,90,.45)}
+.pod.p2{--pc:#d7dce6}
+.pod.p3{--pc:#d08a4e}
+.pod:hover{transform:translateY(-4px)}
+.pod:focus-visible,.rrow:focus-visible{outline:2px solid var(--game-gold);outline-offset:3px}
+.pod-art{position:relative;aspect-ratio:16/10;background:var(--card2)}
+.pod.p1 .pod-art{aspect-ratio:4/3}
+.pod-art img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.pod-art.no-photo{background:var(--bn);display:grid;place-items:center}
+.pod-medal{width:38%;max-width:120px;filter:drop-shadow(0 8px 14px var(--glow));animation:float 3s ease-in-out infinite}
+.pod-medal .medal{display:block;width:100%;height:auto}
+.pod-art .cr{position:absolute;right:8px;bottom:8px;max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px;color:#fff;background:rgba(0,0,0,.45);border-radius:4px;padding:1px 5px}
+.place{position:absolute;left:12px;top:8px;display:flex;flex-direction:column;align-items:center;line-height:1}
+.place b{font-family:"Black Han Sans";font-weight:400;font-size:52px;color:var(--pc);text-shadow:0 3px 0 rgba(0,0,0,.45),0 0 18px rgba(0,0,0,.35)}
+.pod.p1 .place b{font-size:68px}
+.place small{font-size:11px;font-weight:800;letter-spacing:.16em;color:var(--pc);text-shadow:0 1px 2px rgba(0,0,0,.6)}
+.pod-body{padding:14px 16px 16px}
+.pod-nat{display:inline-block;font-size:12px;font-weight:800;background:rgba(255,212,90,.14);color:var(--game-gold);border-radius:6px;padding:2px 8px}
+.pod h3{margin:8px 0 2px;font-size:22px}
+.pod.p1 h3{font-size:28px}
+.pod-loc{font-size:13px;color:var(--muted)}
+.pod-sig{font-size:13px;margin-top:4px}
+.pod-sig b{color:var(--pig)}
+.pod-nums{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:12px}
+.pod-nums span{background:var(--panel);border-radius:10px;padding:6px 4px;text-align:center;font-size:11px;color:var(--muted)}
+.pod-nums b{display:block;font-family:"Black Han Sans";font-weight:400;font-size:20px;color:var(--ink)}
+/* 4위부터: 랭킹 줄 (순위 · 사진 또는 티어 배지 · 이름 · 점수 막대) */
+.rank-list{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media (max-width:900px){.rank-list{grid-template-columns:1fr}}
+.rrow{display:grid;grid-template-columns:34px 40px minmax(0,1fr) auto 44px 30px;grid-template-areas:"pos pic name nat score fav" "pos pic bar bar bar fav";column-gap:10px;row-gap:6px;align-items:center;background:var(--card);color:var(--ink);border:1px solid var(--line);border-left:4px solid var(--tc);border-radius:12px;padding:10px 10px 10px 8px;cursor:pointer;transition:transform .12s,box-shadow .12s}
+.rrow:hover{transform:translateX(3px);box-shadow:0 8px 20px var(--glow)}
+.rpos{grid-area:pos;font-family:"Black Han Sans";font-size:22px;text-align:center;color:var(--muted)}
+.rthumb,.rtier{grid-area:pic;width:40px;height:40px;border-radius:10px}
+.rthumb{object-fit:cover}
+.rtier{display:grid;place-items:center;background:var(--tc);color:#2a1d17;font-family:"Black Han Sans";font-size:18px}
+.rname{grid-area:name;display:flex;flex-direction:column;min-width:0}
+.rname b{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rname small{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rnat{grid-area:nat;font-size:11px;font-weight:700;color:var(--muted);white-space:nowrap}
+.rbar{grid-area:bar;height:6px;border-radius:999px;background:var(--panel2);overflow:hidden}
+.rbar i{display:block;height:100%;border-radius:inherit;background:var(--tc)}
+.rscore{grid-area:score;font-family:"Black Han Sans";font-weight:400;font-size:20px;text-align:right}
+.rrow .fav{grid-area:fav;position:static;width:30px;height:30px;font-size:15px;background:var(--panel);color:var(--muted)}
+@media (prefers-reduced-motion:reduce){.pod-medal{animation:none}}
+/* 상세 패널 (오른쪽에서 열림) */
+.backdrop{position:fixed;inset:0;background:rgba(42,29,23,.35);z-index:1200;opacity:0;pointer-events:none;transition:opacity .2s}
+.backdrop.on{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(480px,100vw);background:var(--card);color:var(--ink);z-index:1201;transform:translateX(100%);transition:transform .25s;display:flex;flex-direction:column;box-shadow:-10px 0 30px rgba(0,0,0,.4)}
+.drawer.on{transform:none}
+.drawer-head{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--line);font-weight:700}
+.drawer-head button{border:0;background:none;font-size:20px;cursor:pointer;color:var(--ink)}
+.drawer-body{overflow:auto;flex:1}
+#map{height:220px;background:var(--card2)}
+.detail{padding:16px}
+.detail h2{margin:0;font-size:28px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.detail .badge{width:38px;height:38px;border-radius:10px;font-size:24px}
+.sub{color:var(--muted);font-size:14px;margin:4px 0 12px}
+.sub b{color:var(--pig)}
+.detail .stats{margin:0 0 12px;gap:8px;grid-template-columns:repeat(4,1fr)}
+.detail .stat{background:var(--panel);border:0;box-shadow:none;border-radius:10px;padding:8px}
+.detail .stat b{font-size:20px}
+.detail .stat span{font-size:11px}
+.picks{list-style:none;padding:0;margin:0;display:grid;gap:6px}
+.pick{display:flex;justify-content:space-between;gap:8px;align-items:center;background:var(--panel);border:1px solid transparent;border-radius:10px;padding:8px 10px;cursor:pointer}
+.pick:hover,.pick.on{border-color:var(--game-gold);background:var(--card3)}
+.pick .nm{font-weight:700}
+.pick .ct{font-size:12px;color:var(--muted)}
+.pick .tag{font-size:11px;background:var(--pig);color:#3a0f22;border-radius:6px;padding:2px 6px;white-space:nowrap}
+.empty{color:var(--muted);font-size:13px;padding:8px}
+.rv-wrap{margin:0 16px 16px;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.rv{position:relative;aspect-ratio:16/10;background:var(--card2)}
+.rv iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.rv-bar{display:flex;flex-wrap:wrap;gap:6px;padding:10px 12px;align-items:center;justify-content:space-between;border-top:1px solid var(--line)}
+.rv-links{display:flex;gap:6px;flex-wrap:wrap}
+.sub.cats{margin:0 0 8px}
+.rv-bar .lbl{font-size:13px;color:var(--muted)}
+.rv-bar a{color:var(--game-gold);font-size:13px;text-decoration:none;border:1px solid var(--line);padding:5px 10px;border-radius:999px;background:transparent}
+.rv-bar a:hover{border-color:var(--accent)}
+/* 돼지 */
+.list-page #pig{position:fixed;right:8px;bottom:0;width:220px;height:220px;z-index:1000;cursor:pointer}
+.list-page #bubble{position:fixed;right:200px;bottom:120px;max-width:min(360px,calc(100vw - 220px));background:var(--card);border:1px solid var(--line);color:var(--ink);border-radius:16px;padding:12px 14px;font-size:14px;line-height:1.5;z-index:1001;box-shadow:0 10px 30px rgba(0,0,0,.4);transition:opacity .2s,transform .2s}
+.list-page #bubble::before{content:"";position:absolute;right:-8px;bottom:22px;width:14px;height:14px;background:var(--card);border-right:1px solid var(--line);border-top:1px solid var(--line);transform:rotate(45deg)}
+.list-page #bubble b{color:var(--game-gold)}
+.list-page #bubble.hide{opacity:0;transform:translateY(8px)}
+@media (max-width:600px){.list-page #pig{width:150px;height:150px}.list-page #bubble{right:130px;bottom:80px;max-width:calc(100vw - 146px);font-size:13px}.list-page main{padding-bottom:180px}}
+.leaflet-container{font-family:"Gowun Dodum"}
+/* 3D 투어 */
+#tour{position:fixed;inset:0;z-index:1500;background:#eaf4fb}
+#tour.hidden{display:none}
+#tour canvas{width:100%;height:100%;display:block}
+.tour-top{position:absolute;top:12px;left:12px;right:12px;display:flex;gap:8px;align-items:flex-start;justify-content:space-between;pointer-events:none}
+.tour-top>*{pointer-events:auto}
+.tour-dots{display:flex;flex-wrap:wrap;gap:4px;max-width:calc(100% - 60px)}
+.tour-dots button,.tour-ctrl button,.tour-pad button{background:rgba(255,255,255,.92);color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:6px 10px;font:inherit;font-size:13px;cursor:pointer;box-shadow:0 2px 8px rgba(120,70,40,.10)}
+.tour-dots button:hover,.tour-ctrl button:hover{border-color:var(--accent)}
+.tour-dots button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.t-close{font-size:16px!important;padding:6px 12px!important}
+.tour-card{position:absolute;right:12px;top:110px;width:min(300px,calc(100vw - 24px));background:rgba(255,255,255,.95);border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:var(--shadow);transition:opacity .25s,transform .25s}
+.tour-card.hide,.tour-near.hide{opacity:0;transform:translateY(-8px);pointer-events:none}
+.tc-head span{font-size:12px;color:var(--muted)}
+.tc-head h3{margin:2px 0 8px;font-family:"Black Han Sans";font-weight:400;font-size:26px}
+.tc-tiers{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px}
+.tc-tiers span{color:var(--ink);border-radius:6px;padding:2px 7px;font-size:12px;font-weight:700}
+.tour-card ol{margin:0 0 10px;padding-left:20px;display:grid;gap:6px}
+.tour-card li{cursor:pointer}
+.tour-card li:hover b{color:var(--accent)}
+.tour-card li i,.tour-near b{font-style:normal;font-family:"Black Han Sans";-webkit-text-stroke:.6px rgba(42,29,23,.55)}
+.tour-card li small{display:block;color:var(--muted)}
+.tc-go{width:100%;background:var(--pig);color:#3a0f22;border:0;border-radius:10px;padding:10px;font:inherit;font-weight:700;cursor:pointer;box-shadow:0 3px 0 var(--pig-deep)}
+.tour-ctrl{position:absolute;right:12px;bottom:14px;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.tour-near{position:absolute;left:50%;top:70px;transform:translateX(-50%);background:rgba(255,255,255,.95);border:1px solid var(--line);border-radius:999px;padding:8px 8px 8px 14px;display:flex;gap:8px;align-items:center;white-space:nowrap;max-width:calc(100vw - 24px);overflow:hidden;box-shadow:var(--shadow);transition:opacity .2s}
+.tour-near button{background:var(--accent);color:#fff;border:0;border-radius:999px;padding:5px 10px;font:inherit;cursor:pointer}
+.tour-pad{position:absolute;left:50%;bottom:64px;transform:translateX(-50%);display:none;grid-template-columns:repeat(3,52px);gap:6px}
+.tour-pad button{height:46px;font-size:18px;border-radius:12px;touch-action:none;user-select:none}
+#tour.free .tour-pad{display:grid}
+.tour-help{position:absolute;left:12px;bottom:14px;color:var(--muted);font-size:12px;background:rgba(255,255,255,.8);padding:4px 10px;border-radius:999px}
+body.touring #pig{display:none}
+body.touring #bubble{left:50%;right:auto;bottom:max(90px,12vh);transform:translateX(-50%);z-index:2000;max-width:min(460px,calc(100vw - 24px))}
+body.touring #bubble.hide{transform:translate(-50%,8px)}
+body.touring #bubble::before{display:none}
+body.touring #tour.free ~ #bubble{bottom:190px}
+@media (max-width:600px){
+  .tour-dots{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+  .tour-dots button{flex:none}
+  .tour-card{top:58px;right:12px;padding:10px 12px}
+  .tour-card ol{display:none}
+  .tc-head h3{font-size:20px;margin-bottom:6px}
+  .tour-help{display:none}
+  body.touring #bubble{bottom:62px}
+  body.touring #tour.free ~ #bubble{bottom:222px}
+  .tour-near{top:58px}
+}

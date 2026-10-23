@@ -6,8 +6,8 @@
 ## 작업 범위
 
 - 코드 작성 중 만드는 파일은 **모두 이 폴더 안에** 만든다. 스크립트, 스타일, 설정, 데모, 생성물(`env.js`)이 모두 해당된다.
-- 이 폴더 밖에서 고치는 파일은 루트 `vercel.json`(빌드 명령)과 루트 `.env.example`(키 형식)뿐이다.
-- `../index.html` 연결은 따로 요청받았을 때 한다. 모듈 작업 중에는 고치지 않는다(다른 브랜치에서 머지되어 올라온다).
+- 이 폴더 밖에서 고치는 파일은 루트 `vercel.json`(빌드 명령), 루트 `.env.example`(키 형식), 그리고 연결부(`../index.html`의 `KakaoMap.*` 호출, `../style.css`의 `#map`·`.rv`)뿐이다.
+- `../index.html`은 이미 연결되어 있다. 모듈 기능을 바꿀 때는 공개 API를 유지해 호스트를 다시 고치지 않게 한다.
 - 밖의 파일을 **읽는 것**은 괜찮다(`demo.html`이 `../data.js`를 불러오는 것).
 - 이 폴더 안에서는 상대 경로만 쓴다.
 
@@ -38,22 +38,23 @@ window.KakaoMap = {
 - SDK가 비동기로 뜨므로 준비 전 호출은 큐에 모았다가 순서대로 실행한다. 호스트는 로딩 순서를 신경 쓰지 않는다.
 - `mount`는 한 번만 부른다.
 
-호스트 연결 예시(`../index.html`의 Leaflet 부분을 바꿀 때):
+`../index.html` 연결 현황:
 
 ```html
 <link rel="stylesheet" href="kakaoAPI/kakao-map.css">
 <script src="kakaoAPI/env.js"></script>
 <script src="kakaoAPI/kakao-map.js"></script>
 <script>
-  KakaoMap.mount(document.getElementById("map"), {markets: MK, tierColor: TIER_COLOR, onSelect: select});
-  // render()     : markers.forEach(setStyle)        → KakaoMap.filter(list)
-  // fitRegion()  : map.fitBounds(...)               → KakaoMap.fit(visible())
-  // select()     : pickLayer + map.setView(..., 16) → KakaoMap.focus(m, i => ul.children[i].click())
-  // showRoadview : Google iframe                    → KakaoMap.roadview(document.getElementById("rv"), lat, lon)
+  KakaoMap.mount($("map"), {markets: MK, tierColor: TIER_COLOR, onSelect: m => select(m)});  // "// 지도"
+  KakaoMap.filter(list);                                          // render() 끝
+  setTimeout(() => KakaoMap.focus(m, i => ul.children[i].click()), 260);  // select(), 서랍이 열린 뒤
+  KakaoMap.roadview($("rv"), lat, lon);                           // showRoadview()
 </script>
 ```
 
-연결할 때 할 일: Leaflet `<link>`·`<script>`·`.leaflet-container` 스타일 삭제, 하단 안내문의 "Google 스트리트뷰" 문구 수정. `카카오 로드뷰`·`네이버 지도` 바깥 링크는 그대로 둔다. `tour.js`(3D 투어)는 지도 타일이 아니므로 범위 밖이다.
+- 지도는 상세 서랍(`#drawer`) 안에 있다. 서랍은 `transform`으로 열려 지도 크기가 바뀌지 않는다.
+- `fit`은 지금 호스트에서 쓰지 않는다(지역 맞춤 기능이 빠짐). 데모에서만 쓴다.
+- `카카오 로드뷰`·`네이버 지도` 바깥 링크는 그대로 둔다. `tour.js`(3D 투어)는 지도 타일이 아니므로 범위 밖이다.
 
 ## 키 두 개 (.env)
 
@@ -94,7 +95,7 @@ https://developers.kakao.com → 내 애플리케이션
 - 라이브러리(`services`, `clusterer`)는 쓰지 않는다. 점이 208개라 클러스터 없이 충분하다.
 - 줌 대응: 카카오 `level ≈ 19 - Leaflet zoom`. 첫 화면 level 13, 시장 선택 level 3, 지역 맞춤 최대 level 7.
 - 점은 `CustomOverlay`에 원형 `<div>`를 넣는다. `kakao.maps.Circle`은 반지름이 미터라 줌마다 크기가 바뀌어 쓰지 않는다.
-  - 시장 점: 티어색, S티어 14px·나머지 10px, 테두리 `#1b1412`. 가게 점: 8px, `#ff9ec4`, 흰 테두리.
+  - 시장 점: 티어색, S티어 14px·나머지 10px, 흰 테두리. 가게 점: 10px, `#ff9ec4`, 테두리 `#c2185b`.
   - 이름은 `title`로 넣는다(`innerHTML` 금지). 흐림은 `km-off` 클래스.
 - 컨테이너 크기가 바뀌면 `ResizeObserver`로 `relayout()`을 부른다.
 - 로드뷰는 `RoadviewClient.getNearestPanoId(pos, 50, cb)`. 없으면(`null`) "근처 로드뷰가 없어요"를 덮어 보인다. 빠르게 연달아 부르면 마지막 요청 결과만 쓴다.
@@ -119,3 +120,4 @@ https://developers.kakao.com → 내 애플리케이션
 5. 시장 점을 누르면 그 시장으로 확대되고 분홍 가게 점이 생기며, 로드뷰가 첫 가게 위치로 바뀐다. 가게 점을 누르면 로드뷰가 그 위치로 바뀐다.
 6. 창 폭을 줄였다 늘려도 지도·로드뷰가 잘리지 않는다.
 7. `env.js`를 지우고 새로고침하면 안내 문구가 나오고 콘솔에 잡히지 않은 오류가 없다.
+8. `../index.html`에서 카드를 눌러 서랍을 열면 지도가 그 시장으로 확대되고 가게 점·로드뷰가 나온다. 가게 목록을 누르면 로드뷰가 바뀌고, 지도의 가게 점을 누르면 목록의 그 가게가 선택된다. 필터·검색을 바꾸면 지도 점이 흐려진다.

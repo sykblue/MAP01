@@ -370,7 +370,6 @@ footer{border-top:1px solid var(--page-line);padding:24px 0 40px;color:var(--pag
 .empty{color:var(--muted);font-size:13px;padding:8px}
 .rv-wrap{margin:0 16px 16px;border:1px solid var(--line);border-radius:12px;overflow:hidden}
 .rv{position:relative;aspect-ratio:16/10;background:var(--card2)}
-.rv iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 .rv-bar{display:flex;flex-wrap:wrap;gap:6px;padding:10px 12px;align-items:center;justify-content:space-between;border-top:1px solid var(--line)}
 .rv-links{display:flex;gap:6px;flex-wrap:wrap}
 .sub.cats{margin:0 0 8px}
@@ -384,7 +383,6 @@ footer{border-top:1px solid var(--page-line);padding:24px 0 40px;color:var(--pag
 .list-page #bubble b{color:var(--game-gold)}
 .list-page #bubble.hide{opacity:0;transform:translateY(8px)}
 @media (max-width:600px){.list-page #pig{width:150px;height:150px}.list-page #bubble{right:130px;bottom:80px;max-width:calc(100vw - 146px);font-size:13px}.list-page main{padding-bottom:180px}}
-.leaflet-container{font-family:"Gowun Dodum"}
 /* 3D 투어 */
 #tour{position:fixed;inset:0;z-index:1500;background:#eaf4fb}
 #tour.hidden{display:none}

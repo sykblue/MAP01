@@ -1,10 +1,10 @@
 .km { position: relative; }
 .km-dot {
   box-sizing: border-box; width: 10px; height: 10px; border-radius: 50%;
-  border: 1.5px solid #1b1412; cursor: pointer; transition: opacity .2s;
+  border: 1.5px solid #fff; cursor: pointer; transition: opacity .2s;
 }
 .km-s { width: 14px; height: 14px; }
-.km-pick { width: 8px; height: 8px; border: 1px solid #fff; background: #ff9ec4; }
+.km-pick { border-color: #c2185b; background: #ff9ec4; }
 .km-off { opacity: .15; }
 
 .km-rv-view { position: absolute; inset: 0; }

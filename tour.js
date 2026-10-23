@@ -99,7 +99,7 @@ window.initTour = function (THREE, api) {
     });
   }
 
-  // 시장 정보 말풍선: 사진 + 짧은 설명 (위키백과가 없으면 데이터로 만든 설명)
+  // 시장 정보 말풍선: 짧은 설명 (위키백과가 없으면 데이터로 만든 설명)
   const descOf = m => infoOf(m).d ||
     `${m.sido || m.region} ${m.sgg || ""}에 있는 재래시장이에요. 반경 300m 안에 음식점 ${m.food}곳, 시장 안 가게 ${m.inside}곳이 모여 있고 대표 먹거리는 ${m.signature}예요.`;
   let infoOv = null, infoFor = null;
@@ -109,15 +109,12 @@ window.initTour = function (THREE, api) {
     hideInfo(); infoFor = m;
     const inf = infoOf(m), box = document.createElement("div");
     box.className = "kinfo";
-    box.innerHTML = `${inf.img ? `<img src="${esc(inf.img)}" alt="${esc(m.name)}">` : ""}
+    box.innerHTML = `
       <div class="ki-body">
         <div class="ki-head"><b>${esc(m.name)}</b><span style="background:${tierColor[m.tier]}">${m.tier}</span></div>
         <p>${esc(descOf(m))}</p>
         <div class="ki-foot">${inf.url ? `<a href="${esc(inf.url)}" target="_blank" rel="noopener">위키백과</a>` : ""}<button>상세·로드뷰</button></div>
-        ${inf.file ? `<small class="ki-credit">사진: <a href="${esc(inf.file)}" target="_blank" rel="noopener">${esc(inf.credit || "위키미디어 공용")}</a></small>` : ""}
       </div>`;
-    const img = box.querySelector("img");
-    if (img) img.onerror = () => img.remove();
     box.querySelector("button").onclick = () => leaveTo(m);
     infoOv = new K.CustomOverlay({map, position: at(m), content: box, yAnchor: 1.08, zIndex: 6});
   }
@@ -151,8 +148,8 @@ window.initTour = function (THREE, api) {
     setTimeout(() => {
       if (move || free || STOPS[idx] !== stop) return;
       const proj = map.getProjection(), p = proj.containerPointFromCoords(at(top));
-      map.panTo(proj.coordsFromContainerPoint(new K.Point(p.x, p.y + 90)));
-    }, 450);
+      map.panTo(proj.coordsFromContainerPoint(new K.Point(p.x, p.y + 150)));
+    }, 600);
     showInfo(top);
     const counts = ["S","A","B","C","D"].map(t => [t, list.filter(m => m.tier === t).length]).filter(([, n]) => n);
     card.innerHTML = `

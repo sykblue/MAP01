@@ -6,8 +6,8 @@
 <title>꿀꿀 시장 티어표</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Gowun+Dodum&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="kakaoAPI/kakao-map.css">
 </head>
 <body class="list-page">
 <header class="nav">
@@ -56,7 +56,7 @@
   <p class="note">
     티어는 <b>공식 평가가 아니에요.</b> 시장 중심 반경 내 음식점 수, 시장 건물 안 가게 수, 업종 다양성, 개인 가게 비율을 섞어 계산한 재미용 지표입니다.
     "맛집" 목록은 별점이 아니라 시장 안·개인 가게를 업종별로 골라 보여 주는 것이니, 방문 전 영업 여부를 꼭 확인하세요.
-    로드뷰는 Google 스트리트뷰 임베드이며, 안 보이면 카카오 로드뷰 버튼을 눌러 주세요.
+    로드뷰는 가게 반경 50m 안의 카카오 로드뷰이며, 안 보이면 네이버 지도 버튼을 눌러 주세요.
   </p>
 </main>
 
@@ -108,7 +108,8 @@
 <script src="geo.js"></script>
 <script src="pig.js"></script>
 <script src="tour.js"></script>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="kakaoAPI/env.js"></script>
+<script src="kakaoAPI/kakao-map.js"></script>
 <script>
 const DATA = window.MARKET_DATA || {meta:{}, markets:[]};
 const MK = DATA.markets;
@@ -291,10 +292,7 @@ function render() {
     }
     board.appendChild(sec);
   });
-  markers.forEach(({m, mk}) => {
-    const on = list.includes(m);
-    mk.setStyle({opacity: on ? 1 : .15, fillOpacity: on ? .95 : .1});
-  });
+  KakaoMap.filter(list);
 }
 
 // 상세 패널
@@ -306,16 +304,7 @@ $("drawerClose").onclick = closeDrawer;
 addEventListener("keydown", e => { if (e.key === "Escape" && !document.body.classList.contains("touring")) closeDrawer(); });
 
 // 지도
-const map = L.map("map", {zoomControl:false, attributionControl:true}).setView([36.3, 127.8], 6);
-L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-  attribution: "&copy; OpenStreetMap", maxZoom: 19
-}).addTo(map);
-const markers = MK.map(m => {
-  const mk = L.circleMarker([m.lat, m.lon], {radius: m.tier === "S" ? 7 : 5, color:"#ffffff", weight:1.5, fillColor: TIER_COLOR[m.tier], fillOpacity:.95})
-    .bindTooltip(`${m.tier} · ${m.name}`).on("click", () => select(m)).addTo(map);
-  return {m, mk};
-});
-let pickLayer = L.layerGroup().addTo(map);
+KakaoMap.mount($("map"), {markets: MK, tierColor: TIER_COLOR, onSelect: m => select(m)});
 
 function select(m, silent) {
   selected = m;
@@ -337,7 +326,6 @@ function select(m, silent) {
     <div class="sub cats">많은 업종: ${cats || "-"}${m.located ? "" : " · 위치는 대략값"}</div>
     <ul class="picks" id="picks"></ul>`;
   const ul = d.querySelector("#picks");
-  pickLayer.clearLayers();
   if (!m.picks.length) ul.innerHTML = `<li class="empty">반경 안에 개인 음식점 데이터가 없어요.</li>`;
   m.picks.forEach((p, i) => {
     const li = document.createElement("li");
@@ -345,10 +333,9 @@ function select(m, silent) {
     li.innerHTML = `<div><div class="nm">${p.n}</div><div class="ct">${p.c} · ${p.a || ""}${p.f ? " " + p.f + "층" : ""}</div></div>${p.in ? '<span class="tag">시장 안</span>' : ""}`;
     li.onclick = () => { [...ul.children].forEach(c => c.classList.toggle("on", c === li)); showRoadview(p.lat, p.lon, `${p.n} (${p.c})`, p.n); pigSay(`<b>${p.n}</b>! ${p.c} 집이야. 로드뷰로 앞까지 데려다줄게, 꿀꿀~`); pig.hop(); };
     ul.appendChild(li);
-    L.circleMarker([p.lat, p.lon], {radius:5, color:"#c2185b", weight:1.5, fillColor:"#ff9ec4", fillOpacity:1}).bindTooltip(p.n).on("click", () => li.click()).addTo(pickLayer);
   });
-  // 패널이 열린 뒤 지도 크기를 다시 잡는다
-  setTimeout(() => { map.invalidateSize(); map.setView([m.lat, m.lon], 16); }, 260);
+  // 패널이 열린 뒤 지도를 옮긴다
+  setTimeout(() => KakaoMap.focus(m, i => ul.children[i].click()), 260);
   const first = m.picks[0];
   showRoadview(first ? first.lat : m.lat, first ? first.lon : m.lon, first ? `${first.n} (${first.c})` : m.name, first ? first.n : m.name);
   if (first) ul.firstChild.classList.add("on");
@@ -356,9 +343,7 @@ function select(m, silent) {
 }
 
 function showRoadview(lat, lon, label, q) {
-  $("rv").innerHTML =
-    `<iframe loading="lazy" allowfullscreen referrerpolicy="no-referrer-when-downgrade"
-      src="https://www.google.com/maps?layer=c&cbll=${lat},${lon}&cbp=12,0,0,0,5&output=svembed"></iframe>`;
+  KakaoMap.roadview($("rv"), lat, lon);
   $("rvLabel").textContent = "로드뷰 · " + label;
   $("kakaoRv").href = `https://map.kakao.com/link/roadview/${lat},${lon}`;
   $("naverMap").href = `https://map.naver.com/p/search/${encodeURIComponent((selected?.sgg || "") + " " + q)}`;

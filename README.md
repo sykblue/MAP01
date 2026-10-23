@@ -69,7 +69,7 @@ python tools/images.py   # data/images.json, images.js
 
 ## 배포 (Vercel)
 
-`vercel.json`이 빌드할 때 두 `make_env.py`를 실행해 `env.js`를 만들고, 루트를 그대로 배포합니다. `.env`는 git에 올라가지 않으므로 Vercel 프로젝트 환경변수에 `KAKAO_JS_API_KEY`, `OPEN_METEO_URL`을 등록해야 합니다.
+`vercel.json`이 빌드할 때 두 `make_env.py`를 실행해 `env.js`를 만들고, 루트를 그대로 배포합니다. 첫 페이지(`/`)는 `main.html`로 리다이렉트됩니다. `.env`는 git에 올라가지 않으므로 Vercel 프로젝트 환경변수에 `KAKAO_JS_API_KEY`, `OPEN_METEO_URL`을 등록해야 합니다.
 
 ## 주의
 

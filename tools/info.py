@@ -3,7 +3,8 @@
 사용: python tools/info.py   (data/markets.json이 먼저 있어야 함, 키 불필요)
 결과: info.js  (window.MARKET_INFO = {"지역 시장이름": {d, src, url, img, file, credit}})
   - 설명(d): 위키백과 첫 두 문장. 문서가 없으면 비워 두고 화면에서 데이터로 만든 설명을 쓴다.
-  - 사진(img): 위키백과 대표 사진, 없으면 시장 반경 안에서 찍힌 공용 사진 중 파일 이름에 시장 이름·"시장"·"market"이 든 것.
+  - 사진(img): 위키백과 대표 사진, 없으면 시장 반경 안에서 찍힌 공용 사진 중 파일 이름에 시장 이름이 든 것
+    (영어 'market' 사진은 200m 안일 때만, 역·학교·해변 사진은 제외).
 """
 import json
 import math
@@ -57,10 +58,17 @@ def get(base, **params):
 
 
 def keys_for(name):
-    """'의정부제일시장' → {'의정부제일시장', '의정부제일'}, '전통'·'종합'을 뺀 이름도 함께."""
-    keys = {name, name.replace("전통", "").replace("종합", "")}
-    keys |= {k[:-2] for k in list(keys) if k.endswith("시장") and len(k) >= 5}
-    return {k for k in keys if len(k) >= 2}
+    """시장 이름과 '전통'·'종합'을 뺀 이름. '시장'까지는 떼지 않는다(떼면 '강릉중앙고등학교'처럼 엉뚱한 곳이 걸린다)."""
+    return {name, name.replace("전통", ""), name.replace("종합", ""), name.replace("전통", "").replace("종합", "")}
+
+
+def norm(title):
+    """'File:광장 시장 (2020).jpg' → '광장시장2020.jpg' 처럼 띄어쓰기·밑줄·괄호 설명을 지운다."""
+    t = title.split(":", 1)[-1]
+    return re.sub(r"[\s_]|\(.*?\)", "", t)
+
+
+NOT_MARKET = re.compile(r"station|역|school|학교|초등|중학|고등|hospital|병원|beach|해수욕장|replace_this|\.svg$", re.I)
 
 
 def strip_html(s):
@@ -84,7 +92,7 @@ def file_info(title):
 def wiki_article(m, keys):
     # 1) 시장 좌표 근처 문서 중 제목에 시장 이름이 든 것  2) 이름 그대로인 문서(좌표가 3km 안이면)
     g = get(WIKI, action="query", list="geosearch", gscoord=f"{m['lat']}|{m['lon']}", gsradius=WIKI_RADIUS, gslimit=50)
-    near = [x["title"] for x in g.get("query", {}).get("geosearch", []) if any(k in x["title"] for k in keys)]
+    near = [x["title"] for x in g.get("query", {}).get("geosearch", []) if norm(x["title"]) in keys]
     titles = near[:1] or [m["name"]]
     d = get(WIKI, action="query", prop="extracts|pageimages|info|coordinates", titles=titles[0], redirects=1,
             exintro=1, explaintext=1, exsentences=2, piprop="name", inprop="url")
@@ -92,12 +100,14 @@ def wiki_article(m, keys):
     if not pages or pages[0].get("missing"):
         return None
     pg = pages[0]
+    if norm(pg.get("title", "")) not in keys:  # 넘겨주기로 역·학교 문서로 간 경우
+        return None
     if not near:  # 이름만 같은 다른 곳일 수 있으니 좌표로 확인
         co = (pg.get("coordinates") or [None])[0]
         if not co or dist(m["lat"], m["lon"], co["lat"], co["lon"]) > 3000:
             return None
     text = (pg.get("extract") or "").strip()
-    if not text or "동음이의" in text:
+    if not text or "동음이의" in text or "시장" not in text.split(".")[0]:
         return None
     return {"d": text[:180], "url": pg.get("fullurl"), "pageimage": pg.get("pageimage")}
 
@@ -107,7 +117,10 @@ def commons_photo(m, keys):
             gslimit=50, gsnamespace=6)
     for x in g.get("query", {}).get("geosearch", []):
         t = x["title"]
-        if any(k in t for k in keys) or "시장" in t or "market" in t.lower():
+        if NOT_MARKET.search(t):
+            continue
+        # 한글 이름이 그대로 들어 있으면 채택. 영어 'market'은 어느 시장인지 모르니 아주 가까울 때만
+        if any(k in norm(t) for k in keys) or ("market" in t.lower() and x.get("dist", 9999) <= 200):
             return t
     return None
 
@@ -121,7 +134,8 @@ def info_of(m):
     art = wiki_article(m, keys)
     if art:
         out.update(d=art["d"], src="위키백과", url=art["url"])
-    photo = ("File:" + art["pageimage"]) if art and art.get("pageimage") else commons_photo(m, keys)
+    page_photo = "File:" + art["pageimage"] if art and art.get("pageimage") else None
+    photo = page_photo if page_photo and not NOT_MARKET.search(page_photo) else commons_photo(m, keys)
     if photo:
         fi = file_info(photo)
         if fi:

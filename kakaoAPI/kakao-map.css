@@ -1,0 +1,20 @@
+.km { position: relative; }
+.km-dot {
+  box-sizing: border-box; width: 10px; height: 10px; border-radius: 50%;
+  border: 1.5px solid #fff; cursor: pointer; transition: opacity .2s;
+}
+.km-s { width: 14px; height: 14px; }
+.km-pick { border-color: #c2185b; background: #ff9ec4; }
+.km-off { opacity: .15; }
+.km-park {
+  width: 18px; height: 18px; border-radius: 5px; border: 1.5px solid #1b1412;
+  background: #4da3ff; color: #08223d; font: 700 11px/15px system-ui, sans-serif; text-align: center;
+}
+
+.km-rv-view { position: absolute; inset: 0; }
+.km-msg {
+  position: absolute; inset: 0; z-index: 10; margin: 0;
+  display: grid; place-items: center; padding: 12px; text-align: center;
+  background: #2b211c; color: #bfa58e; font-size: 14px;
+}
+.km-msg[hidden] { display: none; }

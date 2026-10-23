@@ -6,8 +6,9 @@
 <title>꿀꿀 시장 티어표</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="style.css?v=20261023">
+<link rel="stylesheet" href="kakaoAPI/kakao-map.css">
+<link rel="stylesheet" href="weather-widget/weather.css">
 </head>
 <body class="list-page">
 <header class="nav">
@@ -18,7 +19,7 @@
       <a href="main.html">소개</a>
       <a href="main.html#score">점수 계산</a>
       <a href="main.html#regions">지역 1등</a>
-      <button id="tourBtn" class="btn btn-pig">🐷 3D 투어</button>
+      <button id="tourBtn" class="btn btn-pig">🐷 스카이뷰 투어</button>
     </nav>
   </div>
 </header>
@@ -56,7 +57,9 @@
   <p class="note">
     티어는 <b>공식 평가가 아니에요.</b> 시장 중심 반경 내 음식점 수, 시장 건물 안 가게 수, 업종 다양성, 개인 가게 비율을 섞어 계산한 재미용 지표입니다.
     "맛집" 목록은 별점이 아니라 시장 안·개인 가게를 업종별로 골라 보여 주는 것이니, 방문 전 영업 여부를 꼭 확인하세요.
-    로드뷰는 Google 스트리트뷰 임베드이며, 안 보이면 카카오 로드뷰 버튼을 눌러 주세요.
+    로드뷰는 가게 반경 50m 안의 카카오 로드뷰이며, 안 보이면 네이버 지도 버튼을 눌러 주세요.
+    주차장은 OpenStreetMap에 등록된 곳만 보여 주며 요금·운영 시간은 다를 수 있어요. 지도 위 파란 선은 주차장에서 시장까지 걷는 길입니다.
+    날씨 데이터: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a> (CC BY 4.0).
   </p>
 </main>
 
@@ -64,6 +67,7 @@
 <aside class="drawer" id="drawer" aria-hidden="true">
   <div class="drawer-head"><span>시장 정보</span><button id="drawerClose" title="닫기 (Esc)">✕</button></div>
   <div class="drawer-body">
+    <div class="drawer-weather" id="weather"></div>
     <div id="map"></div>
     <div class="detail" id="detail"></div>
     <div class="rv-wrap">
@@ -81,7 +85,8 @@
 
 <canvas id="pig" title="돼지를 눌러 보세요"></canvas>
 <div id="tour" class="hidden">
-  <canvas></canvas>
+  <div class="kmap"></div>
+  <canvas class="tour-pig"></canvas>
   <div class="tour-top">
     <div class="tour-dots"></div>
     <button class="t-close" title="닫기 (Esc)">✕</button>
@@ -92,7 +97,7 @@
     <span></span><button data-key="arrowup">▲</button><span></span>
     <button data-key="arrowleft">◀</button><button data-key="arrowdown">▼</button><button data-key="arrowright">▶</button>
   </div>
-  <div class="tour-help">방향키·WASD 자유 이동 · Esc 닫기</div>
+  <div class="tour-help">방향키·WASD 자유 비행 · 시장 점을 누르면 정보 · Esc 닫기</div>
   <div class="tour-ctrl">
     <button class="t-prev">◀ 이전</button>
     <button class="t-auto">⏸ 자동</button>
@@ -104,11 +109,15 @@
 
 <script src="data.js"></script>
 <script src="images.js"></script>
+<script src="parking.js"></script>
+<script src="info.js"></script>
 <script src="medal.js"></script>
-<script src="geo.js"></script>
 <script src="pig.js"></script>
 <script src="tour.js"></script>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="kakaoAPI/env.js"></script>
+<script src="kakaoAPI/kakao-map.js"></script>
+<script src="weather-widget/env.js"></script>
+<script src="weather-widget/weather.js"></script>
 <script>
 const DATA = window.MARKET_DATA || {meta:{}, markets:[]};
 const MK = DATA.markets;
@@ -349,15 +358,12 @@ function render() {
     }
     track.appendChild(sec);
   });
+  KakaoMap.filter(list);
   if (track.children.length) {
     board.classList.toggle("single", track.children.length === 1);
     board.append(pager, track);
     setupTrack(track, pager);
   }
-  markers.forEach(({m, mk}) => {
-    const on = list.includes(m);
-    mk.setStyle({opacity: on ? 1 : .15, fillOpacity: on ? .95 : .1});
-  });
 }
 
 // 상세 패널
@@ -369,20 +375,13 @@ $("drawerClose").onclick = closeDrawer;
 addEventListener("keydown", e => { if (e.key === "Escape" && !document.body.classList.contains("touring")) closeDrawer(); });
 
 // 지도
-const map = L.map("map", {zoomControl:false, attributionControl:true}).setView([36.3, 127.8], 6);
-L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-  attribution: "&copy; OpenStreetMap", maxZoom: 19
-}).addTo(map);
-const markers = MK.map(m => {
-  const mk = L.circleMarker([m.lat, m.lon], {radius: m.tier === "S" ? 7 : 5, color:"#ffffff", weight:1.5, fillColor: TIER_COLOR[m.tier], fillOpacity:.95})
-    .bindTooltip(`${m.tier} · ${m.name}`).on("click", () => select(m)).addTo(map);
-  return {m, mk};
-});
-let pickLayer = L.layerGroup().addTo(map);
+KakaoMap.mount($("map"), {markets: MK, tierColor: TIER_COLOR, onSelect: m => select(m)});
+WeatherWidget.mount($("weather"));
 
 function select(m, silent) {
   selected = m;
   openDrawer();
+  WeatherWidget.show(m);
   drawer.querySelector(".drawer-body").scrollTop = 0;
   const d = $("detail");
   const cats = m.topCats.map(([k,v]) => `${k} ${v}`).join(" · ");
@@ -398,9 +397,10 @@ function select(m, silent) {
       <div class="stat"><b>${m.variety}</b><span>업종 수</span></div>
     </div>
     <div class="sub cats">많은 업종: ${cats || "-"}${m.located ? "" : " · 위치는 대략값"}</div>
-    <ul class="picks" id="picks"></ul>`;
+    <ul class="picks" id="picks"></ul>
+    <div class="park-head"><b>🅿️ 근처 주차장</b><span class="sub" id="parkInfo"></span></div>
+    <ul class="picks parks" id="parks"></ul>`;
   const ul = d.querySelector("#picks");
-  pickLayer.clearLayers();
   if (!m.picks.length) ul.innerHTML = `<li class="empty">반경 안에 개인 음식점 데이터가 없어요.</li>`;
   m.picks.forEach((p, i) => {
     const li = document.createElement("li");
@@ -408,20 +408,67 @@ function select(m, silent) {
     li.innerHTML = `<div><div class="nm">${p.n}</div><div class="ct">${p.c} · ${p.a || ""}${p.f ? " " + p.f + "층" : ""}</div></div>${p.in ? '<span class="tag">시장 안</span>' : ""}`;
     li.onclick = () => { [...ul.children].forEach(c => c.classList.toggle("on", c === li)); showRoadview(p.lat, p.lon, `${p.n} (${p.c})`, p.n); pigSay(`<b>${p.n}</b>! ${p.c} 집이야. 로드뷰로 앞까지 데려다줄게, 꿀꿀~`); pig.hop(); };
     ul.appendChild(li);
-    L.circleMarker([p.lat, p.lon], {radius:5, color:"#c2185b", weight:1.5, fillColor:"#ff9ec4", fillOpacity:1}).bindTooltip(p.n).on("click", () => li.click()).addTo(pickLayer);
   });
-  // 패널이 열린 뒤 지도 크기를 다시 잡는다
-  setTimeout(() => { map.invalidateSize(); map.setView([m.lat, m.lon], 16); }, 260);
+  // 패널이 열린 뒤 지도를 옮긴다 (주차장 선은 그 뒤에 그려 지도 범위를 맞춘다)
+  setTimeout(() => { KakaoMap.focus(m, i => ul.children[i].click()); showParking(m); }, 260);
   const first = m.picks[0];
   showRoadview(first ? first.lat : m.lat, first ? first.lon : m.lon, first ? `${first.n} (${first.c})` : m.name, first ? first.n : m.name);
   if (first) ul.firstChild.classList.add("on");
   if (!silent) { pigSay(tierLine(m)); pig.hop(); }
 }
 
+// 주차장: 시장을 고르면 가까운 주차장(parking.js)을 보여 주고, 주차장 → 시장 걷는 길을 지도에 긋는다
+const PARK = window.PARKING_DATA || {};
+const PARK_COLOR = "#4da3ff";
+const parkOf = m => PARK[`${m.region} ${m.name}`] || [];  // 이름이 같은 시장이 있어 지역을 붙인 키
+const parkName = (p, i) => p.n || `${p.k ? p.k + " " : ""}주차장 ${i + 1}`;
+let routeSeq = 0;
+
+function showParking(m) {
+  const ul = $("parks"), lots = parkOf(m);
+  if (!ul || selected !== m) return;
+  routeSeq++;
+  $("parkInfo").textContent = "";
+  KakaoMap.route(null);
+  KakaoMap.parking(m, lots.map((p, i) => ({...p, n: parkName(p, i)})), i => ul.children[i].click());
+  if (!lots.length) { ul.innerHTML = `<li class="empty">지도에 등록된 주차장이 근처에 없어요.</li>`; return; }
+  ul.innerHTML = "";
+  lots.forEach((p, i) => {
+    const name = parkName(p, i);
+    const li = document.createElement("li");
+    li.className = "pick";
+    li.innerHTML = `<div><div class="nm">${esc(name)}</div><div class="ct">직선 ${p.d}m${p.k ? " · " + p.k : ""}${p.fee ? " · " + p.fee : ""}${p.cap ? " · " + p.cap + "면" : ""}</div></div>
+      <a class="tag" target="_blank" rel="noopener" title="카카오맵 자동차 길찾기" href="https://map.kakao.com/link/to/${encodeURIComponent(name)},${p.lat},${p.lon}">길찾기</a>`;
+    li.onclick = e => { if (!e.target.closest("a")) routeTo(m, p, li); };
+    ul.appendChild(li);
+  });
+  routeTo(m, lots[0], ul.firstChild, true);
+}
+
+async function routeTo(m, p, li, quiet) {
+  const seq = ++routeSeq, info = $("parkInfo");
+  [...li.parentNode.children].forEach(c => c.classList.toggle("on", c === li));
+  // 길을 받기 전과 실패했을 때는 점선 직선
+  KakaoMap.route([[p.lat, p.lon], [m.lat, m.lon]], {color: PARK_COLOR, dashed: true, fit: true});
+  info.textContent = "길 찾는 중…";
+  let text;
+  try {
+    const r = await fetch(`https://routing.openstreetmap.de/routed-foot/route/v1/foot/${p.lon},${p.lat};${m.lon},${m.lat}?overview=full&geometries=geojson`);
+    const rt = (await r.json()).routes?.[0];
+    if (!rt) throw new Error("no route");
+    if (seq !== routeSeq) return;  // 그사이 다른 주차장·시장을 골랐으면 버린다
+    KakaoMap.route(rt.geometry.coordinates.map(([x, y]) => [y, x]), {color: PARK_COLOR});
+    text = `걸어서 ${Math.round(rt.distance)}m · 약 ${Math.max(1, Math.round(rt.duration / 60))}분`;
+  } catch {
+    if (seq !== routeSeq) return;
+    text = `직선 ${p.d}m (길 정보를 못 불러왔어요)`;
+  }
+  info.textContent = text;
+  if (!quiet) { pigSay(`<b>${esc(p.n || "이 주차장")}</b>에 차를 대면 시장까지 ${text}! 파란 선 따라와, 꿀꿀~`); pig.hop(); }
+}
+
 function showRoadview(lat, lon, label, q) {
-  $("rv").innerHTML =
-    `<iframe loading="lazy" allowfullscreen referrerpolicy="no-referrer-when-downgrade"
-      src="https://www.google.com/maps?layer=c&cbll=${lat},${lon}&cbp=12,0,0,0,5&output=svembed"></iframe>`;
+  KakaoMap.roadview($("rv"), lat, lon);
   $("rvLabel").textContent = "로드뷰 · " + label;
   $("kakaoRv").href = `https://map.kakao.com/link/roadview/${lat},${lon}`;
   $("naverMap").href = `https://map.naver.com/p/search/${encodeURIComponent((selected?.sgg || "") + " " + q)}`;
@@ -458,13 +505,20 @@ function pigSay(html) {
 }
 window.pig = { hop(){} };  // 3D 로딩 전 대비
 let tour = null;
-$("tourBtn").onclick = () => tour ? tour.open() : pigSay("3D를 불러오는 중이야, 잠깐만! 꿀");
-window.startTour = THREE => {
+$("tourBtn").onclick = () => {
+  if (tour) return tour.open();
+  pigSay(KakaoMap.status().state === "failed"
+    ? "카카오 지도를 못 불러왔어. 😢 <b>kakaoAPI/env.js</b>(JS 키)와 Kakao Developers의 도메인 등록을 확인해 줘! 파일을 바로 열면 안 되고 Live Server로 열어야 해."
+    : "지도를 불러오는 중이야, 잠깐만! 꿀");
+};
+// 스카이뷰 투어는 서랍 지도와 같은 카카오 SDK(KakaoMap이 불러온 것)를 쓴다
+window.startTour = THREE => KakaoMap.ready(() => {
   tour = initTour(THREE, {
-    markets: MK, geo: window.KOREA_GEO, tierColor: TIER_COLOR, pigSay,
+    markets: MK, tierColor: TIER_COLOR, pigSay, parkOf,
+    infoOf: m => (window.MARKET_INFO || {})[`${m.region} ${m.name}`] || {},
     openMarket: m => { setRegion("전국"); select(m); },
   });
-};
+});
 $("pig").onclick = () => { pigSay(TIPS[Math.floor(Math.random()*TIPS.length)]); pig.hop(); };
 
 // main.html에서 넘어올 때: ?tier=S, ?m=시장이름

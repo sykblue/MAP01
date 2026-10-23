@@ -39,10 +39,7 @@
 
 <div class="filter-bar">
   <div class="wrap">
-    <span class="fgroup">
-      <select id="regionSel" class="fbtn" aria-label="지역"></select>
-      <span class="fcount" id="regionCnt"></span>
-    </span>
+    <div class="region-chips" id="regionChips" role="group" aria-label="지역"></div>
     <button id="favBtn" class="fbtn">♡ 찜한 시장</button>
     <input id="q" class="search" placeholder="시장·시군구 검색 (예: 광장)" autocomplete="off">
     <select id="sort" class="sort" aria-label="정렬">
@@ -73,7 +70,7 @@
       <div class="rv" id="rv"></div>
       <div class="rv-bar">
         <span class="lbl" id="rvLabel">로드뷰</span>
-        <span style="display:flex;gap:6px;flex-wrap:wrap">
+        <span class="rv-links">
           <a id="kakaoRv" target="_blank" rel="noopener">카카오 로드뷰</a>
           <a id="naverMap" target="_blank" rel="noopener">네이버 지도</a>
         </span>
@@ -135,7 +132,7 @@ $("meta").textContent +=
   ` · 기준 ${DATA.meta.stdrYm ? DATA.meta.stdrYm.slice(0,4)+"."+DATA.meta.stdrYm.slice(4) : "-"}`;
 
 // 티어 분포 막대
-$("dist").innerHTML = TIERS.map(([t]) => { const n = MK.filter(m => m.tier === t).length; return n ? `<span style="flex:${n};background:${TIER_COLOR[t]}" title="${t}티어 ${n}곳">${t}</span>` : ""; }).join("");
+$("dist").innerHTML = TIERS.map(([t]) => { const n = MK.filter(m => m.tier === t).length; return n ? `<span class="tier-bg-${t}" style="flex:${n}" title="${t}티어 ${n}곳">${t}</span>` : ""; }).join("");
 
 // 티어 칩 (맨 위 기준 필터): 메달 + 등급 이름
 const tierChips = $("tierChips");
@@ -154,19 +151,23 @@ function setTier(t) {
   render();
 }
 
-// 필터 바: 지역
-const regionSel = $("regionSel"), REGION_N = {};
+// 필터 바: 지역 칩 (이름 옆 개수는 따로 배지로)
+const regionChips = $("regionChips");
 REGIONS.forEach(r => {
   const n = r === "전국" ? MK.length : MK.filter(m => m.region === r).length;
-  if (n) { regionSel.add(new Option(`지역 ${r}`, r)); REGION_N[r] = n; }
+  if (!n) return;
+  const b = document.createElement("button");
+  b.className = "rchip";
+  b.dataset.r = r;
+  b.innerHTML = `${r}<span class="rcnt">${n}</span>`;
+  b.onclick = () => { setRegion(r); pigSay(regionLine(r)); };
+  regionChips.appendChild(b);
 });
 function setRegion(r) {
   region = r;
-  regionSel.value = r;
-  $("regionCnt").textContent = `${REGION_N[r]}곳`;
+  [...regionChips.children].forEach(c => { const on = c.dataset.r === r; c.classList.toggle("on", on); c.setAttribute("aria-pressed", on); });
   render();
 }
-regionSel.onchange = () => { setRegion(regionSel.value); pigSay(regionLine(region)); };
 $("favBtn").onclick = () => { favOnly = !favOnly; render(); };
 $("q").oninput = e => { query = e.target.value.trim(); render(); };
 $("sort").onchange = e => { sortBy = e.target.value; render(); };
@@ -190,42 +191,59 @@ function toggleFav(m) {
 const IMG = window.MARKET_IMAGES || {};
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 
-// 사진이 있으면 썸네일 카드, 없으면 작은 카드
-function card(m) {
-  const c = TIER_COLOR[m.tier], fav = favs.has(m.name), img = IMG[m.name];
-  const favBtn = `<button class="fav${fav ? " on" : ""}" title="찜하기" aria-pressed="${fav}">${fav ? "♥" : "♡"}</button>`;
-  const info = `
-    <h3>${m.name}</h3>
-    <div class="co">${m.sido || m.region} ${m.sgg || ""}</div>
-    <div class="loc">대표 먹거리 · ${m.signature}</div>
-    <div class="rw">음식점 ${m.food}곳 · ${m.score}점</div>`;
-  // 전국 3위 안은 금색 순위표
-  const rk = `<span class="rk${m.rank <= 3 ? " top" : ""}">${m.rank <= 3 ? "👑 " : ""}전국 ${m.rank}위</span>`;
-  const el = document.createElement("article");
+// 시장 카드: 티어 안 1~3위는 시상대 카드, 4위부터는 랭킹 줄
+const PLACE = ["1ST", "2ND", "3RD"];
+const MAX_SCORE = Math.max(...MK.map(m => m.score), 1);
+
+function hookCard(el, m) {
   el.tabIndex = 0;
-  el.style.setProperty("--tc", c);
-  if (img) {
-    el.className = `mk t-${m.tier}`;
-    el.innerHTML = `
-      <div class="thumb">
-        <img loading="lazy" src="${esc(img.src)}" alt="${esc(m.name)} 사진">
-        <span class="cr" title="${esc(img.from)} · ${esc(img.credit)}">${esc(img.credit || img.from)}</span>
-        <span class="tb" style="background:${c}">${m.tier}</span>
-        ${rk}
-        ${favBtn}
-      </div>${info}`;
-    // 사진이 안 열리면 그 시장은 작은 카드로 바꿔 다시 그린다
-    el.querySelector("img").addEventListener("error", () => { delete IMG[m.name]; rerenderSoon(); });
-  } else {
-    el.className = `mk mini t-${m.tier}`;
-    el.innerHTML = `
-      <div class="top"><span class="tb" style="background:${c}">${m.tier}</span>${rk}</div>
-      ${favBtn}${info}`;
-  }
   el.onclick = () => select(m);
   el.onkeydown = e => { if (e.key === "Enter" && e.target === el) select(m); };
   el.querySelector(".fav").onclick = e => { e.stopPropagation(); toggleFav(m); };
+  // 사진이 안 열리면 사진 없는 모양으로 다시 그린다
+  el.querySelector("img")?.addEventListener("error", () => { delete IMG[m.name]; rerenderSoon(); });
   return el;
+}
+const favBtn = m => { const on = favs.has(m.name); return `<button class="fav${on ? " on" : ""}" title="찜하기" aria-pressed="${on}">${on ? "♥" : "♡"}</button>`; };
+
+// 시상대 카드 (pos: 0~2). 사진이 없으면 티어 메달 그림으로 채운다
+function podCard(m, pos) {
+  const img = IMG[m.name];
+  const el = document.createElement("article");
+  el.className = `pod p${pos + 1} t-${m.tier}`;
+  el.innerHTML = `
+    <div class="pod-art${img ? "" : " no-photo"}">
+      ${img ? `<img loading="lazy" src="${esc(img.src)}" alt="${esc(m.name)} 사진"><span class="cr" title="${esc(img.from)} · ${esc(img.credit)}">${esc(img.credit || img.from)}</span>`
+            : `<span class="pod-medal">${medalSVG(m.tier)}</span>`}
+      <span class="place"><b>${pos + 1}</b><small>${PLACE[pos]}</small></span>
+      ${favBtn(m)}
+    </div>
+    <div class="pod-body">
+      <span class="pod-nat">${m.rank <= 3 ? "👑 " : ""}전국 ${m.rank}위</span>
+      <h3>${m.name}</h3>
+      <div class="pod-loc">${m.sido || m.region} ${m.sgg || ""}</div>
+      <div class="pod-sig">대표 <b>${m.signature}</b></div>
+      <div class="pod-nums">
+        <span><b>${m.score}</b>점수</span><span><b>${m.food}</b>음식점</span><span><b>${m.inside}</b>시장 안</span>
+      </div>
+    </div>`;
+  return hookCard(el, m);
+}
+
+// 랭킹 줄 (pos: 티어 안 순위). 사진이 있으면 작은 썸네일, 없으면 티어 배지
+function rankRow(m, pos) {
+  const img = IMG[m.name];
+  const el = document.createElement("li");
+  el.className = `rrow t-${m.tier}`;
+  el.innerHTML = `
+    <span class="rpos">${pos + 1}</span>
+    ${img ? `<img class="rthumb" loading="lazy" src="${esc(img.src)}" alt="">` : `<span class="rtier">${m.tier}</span>`}
+    <span class="rname"><b>${m.name}</b><small>${m.sido || m.region} ${m.sgg || ""} · ${m.signature}</small></span>
+    <span class="rnat">전국 ${m.rank}위</span>
+    <span class="rbar"><i style="width:${(m.score / MAX_SCORE * 100).toFixed(1)}%"></i></span>
+    <b class="rscore">${m.score}</b>
+    ${favBtn(m)}`;
+  return hookCard(el, m);
 }
 
 let rerenderTimer;
@@ -260,14 +278,17 @@ function render() {
         <div class="tb-count"><b>${items.length}</b>곳</div>
         <div class="emblem">${medalSVG(t)}</div>
       </div>`;
-    // 사진 있는 시장은 큰 카드, 없는 시장은 그 아래 작은 카드
-    [["grid", items.filter(m => IMG[m.name])], ["mini-grid", items.filter(m => !IMG[m.name])]].forEach(([cls, ms]) => {
-      if (!ms.length) return;
-      const g = document.createElement("div");
-      g.className = cls;
-      ms.forEach(m => g.appendChild(card(m)));
-      sec.appendChild(g);
-    });
+    // 티어 안 1~3위는 시상대, 나머지는 랭킹 줄
+    const podium = document.createElement("div");
+    podium.className = "podium";
+    items.slice(0, 3).forEach((m, p) => podium.appendChild(podCard(m, p)));
+    sec.appendChild(podium);
+    if (items.length > 3) {
+      const ol = document.createElement("ol");
+      ol.className = "rank-list";
+      items.slice(3).forEach((m, p) => ol.appendChild(rankRow(m, p + 3)));
+      sec.appendChild(ol);
+    }
     board.appendChild(sec);
   });
   markers.forEach(({m, mk}) => {
@@ -305,7 +326,7 @@ function select(m, silent) {
   const img = IMG[m.name];
   d.innerHTML = `
     ${img ? `<figure class="photo"><img src="${esc(img.src)}" alt="${esc(m.name)} 사진"><figcaption>사진: <a href="${esc(img.link)}" target="_blank" rel="noopener">${esc(img.from)}</a>${img.credit ? " · " + esc(img.credit) : ""}</figcaption></figure>` : ""}
-    <h2><span class="badge" style="background:${TIER_COLOR[m.tier]}">${m.tier}</span>${m.name}</h2>
+    <h2><span class="badge tier-bg-${m.tier}">${m.tier}</span>${m.name}</h2>
     <div class="sub">${m.sido || m.region} ${m.sgg || ""} · 전국 ${m.rank}위 · 대표 먹거리 <b>${m.signature}</b></div>
     <div class="stats">
       <div class="stat"><b>${m.score}</b><span>점수</span></div>
@@ -313,7 +334,7 @@ function select(m, silent) {
       <div class="stat"><b>${m.inside}</b><span>시장 안 가게</span></div>
       <div class="stat"><b>${m.variety}</b><span>업종 수</span></div>
     </div>
-    <div class="sub" style="margin:0 0 8px">많은 업종: ${cats || "-"}${m.located ? "" : " · 위치는 대략값"}</div>
+    <div class="sub cats">많은 업종: ${cats || "-"}${m.located ? "" : " · 위치는 대략값"}</div>
     <ul class="picks" id="picks"></ul>`;
   const ul = d.querySelector("#picks");
   pickLayer.clearLayers();

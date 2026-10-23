@@ -120,7 +120,7 @@
 <section class="continue">
   <div class="wrap">
     <span class="g-en">CONTINUE?</span>
-    <h2>208곳 전체 티어표에서<br>다음 시장을 골라 보세요</h2>
+    <h2><span id="cTotal">208</span>곳 전체 티어표에서<br>다음 시장을 골라 보세요</h2>
     <a class="g-btn start" href="index.html">▶ PRESS START</a>
   </div>
 </section>
@@ -140,7 +140,6 @@
 const DATA = window.MARKET_DATA || {meta:{}, markets:[]};
 const MK = DATA.markets;
 const IMG = window.MARKET_IMAGES || {};
-const TIER_COLOR = Object.fromEntries(TIERS.map(([t]) => [t, getComputedStyle(document.documentElement).getPropertyValue("--"+t).trim()]));
 const REGIONS = ["서울","경기","인천","강원","충북","충남","세종","대전","전북","전남","광주","경북","경남","대구","울산","부산","제주"];
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -155,6 +154,7 @@ $("hPicks").textContent = MK.reduce((n, m) => n + m.picks.length, 0);
 $("hRegions").textContent = new Set(MK.map(m => m.region)).size;
 $("hKings").textContent = byTier("S").length;
 $("radius").textContent = DATA.meta.radius || 300;
+$("cTotal").textContent = MK.length;
 
 // 능력치 막대 최대값
 const MAX = {food: Math.max(...MK.map(m => m.food)), inside: Math.max(...MK.map(m => m.inside)), variety: Math.max(...MK.map(m => m.variety))};
@@ -168,7 +168,7 @@ function picksList(m, n = 3) {
 // 보스 시장 카드: 사진(있으면) + 능력치 + 맛집
 function bossCard(m, i) {
   const img = IMG[m.name];
-  return `<article class="boss t-${m.tier}" style="--tc:${TIER_COLOR[m.tier]}">
+  return `<article class="boss t-${m.tier}">
     <div class="boss-top">
       ${img ? `<img loading="lazy" src="${esc(img.src)}" alt="${esc(m.name)} 사진" onerror="this.remove()">` : ""}
       <span class="boss-no">${i === 0 ? "BOSS" : "STAGE " + (i + 1)}</span>
@@ -237,7 +237,6 @@ $("drawBtn").onclick = () => {
   setTimeout(() => {
     const [, desc, rank] = TIERS.find(x => x[0] === m.tier);
     card.className = `gcard open t-${m.tier}`;
-    card.style.setProperty("--tc", TIER_COLOR[m.tier]);
     card.innerHTML = `
       <div class="gcard-face">
         <div class="gc-medal">${medalSVG(m.tier)}</div>
@@ -269,7 +268,7 @@ $("regionBoard").innerHTML = REGIONS.map(r => MK.find(m => m.region === r)).filt
       <span class="pos">${i + 1}</span>
       <span class="bm">${medalSVG(m.tier)}</span>
       <span class="who"><b>${esc(m.name)}</b><small>${esc(m.region)} · ${esc(m.signature)}</small></span>
-      <span class="pts"><i style="width:${m.score}%;background:${TIER_COLOR[m.tier]}"></i></span>
+      <span class="pts"><i class="tier-bg-${m.tier}" style="width:${m.score}%"></i></span>
       <b class="sc">${m.score}</b>
     </a>
   </li>`).join("");

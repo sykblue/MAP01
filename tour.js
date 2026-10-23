@@ -1,6 +1,13 @@
 // 3D 돼지 투어: 시·도 입체 지도 위를 돼지가 뛰어다니며 지역별 1등 시장을 안내한다 (3인칭 카메라).
 window.initTour = function (THREE, api) {
-  const {markets, geo, tierColor, pigSay, openMarket} = api;
+  const {markets, geo, tierColor, pigSay, openMarket, parkOf = () => []} = api;
+  // 주차장은 시장과 수백 m 거리라 3D 축척(1칸≈2.8km)에서는 안 보이므로 카드·안내 문구로만 알려 준다
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c]);
+  const parkText = m => {
+    const lots = parkOf(m), p = lots[0];
+    if (!p) return "근처에 등록된 주차장 없음";
+    return `${p.n || "가까운 주차장"} · 직선 ${p.d}m${p.fee ? " · " + p.fee : ""}${lots.length > 1 ? ` 외 ${lots.length - 1}곳` : ""}`;
+  };
   const ORDER = ["서울","인천","경기","강원","충북","세종","대전","충남","전북","광주","전남","제주","경남","부산","울산","대구","경북"];
   const FULL = {"서울":"서울특별시","인천":"인천광역시","경기":"경기도","강원":"강원도","충북":"충청북도","세종":"세종특별자치시",
     "대전":"대전광역시","충남":"충청남도","전북":"전라북도","광주":"광주광역시","전남":"전라남도","제주":"제주특별자치도",
@@ -179,6 +186,7 @@ window.initTour = function (THREE, api) {
       <div class="tc-head"><span>${idx + 1} / ${STOPS.length}</span><h3>${FULL[stop.region]}</h3></div>
       <div class="tc-tiers">${counts.map(([t, n]) => `<span style="background:${tierColor[t]}">${t} ${n}</span>`).join("")}</div>
       <ol>${list.slice(0, 3).map(m => `<li data-n="${m.name}"><b>${m.name}</b> <i style="color:${tierColor[m.tier]}">${m.tier}</i><small>${m.signature}</small></li>`).join("")}</ol>
+      <div class="tc-park">🅿️ ${esc(parkText(top))}</div>
       <button class="tc-go">🐽 ${top.name} 맛집 로드뷰 보기</button>`;
     card.querySelectorAll("li").forEach(li => li.onclick = () => leaveTo(list.find(m => m.name === li.dataset.n)));
     card.querySelector(".tc-go").onclick = () => leaveTo(top);
@@ -247,7 +255,8 @@ window.initTour = function (THREE, api) {
       if (best !== nearM) {
         nearM = best;
         if (best) {
-          near.innerHTML = `<b style="color:${tierColor[best.tier]}">${best.tier}</b> ${best.name} · ${best.signature} <button>보기 (Enter)</button>`;
+          const nP = parkOf(best).length;
+          near.innerHTML = `<b style="color:${tierColor[best.tier]}">${best.tier}</b> ${best.name} · ${best.signature}${nP ? ` · 🅿️ ${nP}곳` : ""} <button>보기 (Enter)</button>`;
           near.querySelector("button").onclick = () => leaveTo(best);
           near.classList.remove("hide");
           pigSay(`<b>${best.name}</b> 도착! ${best.tier}티어, ${best.signature} 맛집이 있어.`);

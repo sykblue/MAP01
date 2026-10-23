@@ -1,0 +1,1 @@
+{"version": 0.6, "generator": "Overpass API 0.7.62.11 87bfad18", "osm3s": {"timestamp_osm_base": "2026-10-23T07:18:56Z", "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."}, "elements": [{"type": "way", "id": 475332754, "center": {"lat": 37.6297583, "lon": 127.0261792}, "tags": {"amenity": "parking"}}]}

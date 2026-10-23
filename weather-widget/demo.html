@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>날씨 위젯 데모</title>
+<link rel="stylesheet" href="weather.css">
+<style>
+  body { margin: 0; padding: 24px 16px; background: #1b1412; color: #f7ead9; font-family: "Gowun Dodum", system-ui, sans-serif; }
+  h1 { margin: 0 0 6px; font-family: "Black Han Sans", sans-serif; font-weight: 400; }
+  p { margin: 0 0 16px; color: #bfa58e; font-size: 14px; }
+  .list { display: flex; flex-wrap: wrap; gap: 6px; }
+  .list button { background: #33261f; border: 1px solid #4a372d; color: inherit; border-radius: 10px; padding: 6px 10px; font: inherit; font-size: 14px; cursor: pointer; }
+  .list button:hover { border-color: #ffb36b; }
+</style>
+</head>
+<body>
+<h1>날씨 위젯 데모</h1>
+<p>시장을 고르면 오른쪽 아래 위젯이 그 시장 날씨로 바뀝니다. 위젯을 누르면 펼쳐지고, 다시 누르면 접힙니다.</p>
+<div class="list" id="list"></div>
+<p style="margin-top:16px;font-size:12px">날씨 데이터: <a href="https://open-meteo.com/" target="_blank" rel="noopener" style="color:inherit">Open-Meteo.com</a> (CC BY 4.0)</p>
+
+<script src="../data.js"></script>
+<script src="env.js"></script>
+<script src="weather.js"></script>
+<script>
+  const markets = (window.MARKET_DATA ? MARKET_DATA.markets : []).slice(0, 12);
+  const tests = [
+    ["(테스트) 선택 해제", null],
+    ["(테스트) 좌표 없음", {name: "좌표없는시장"}],
+  ];
+  const list = document.getElementById("list");
+  [...markets.map(m => [m.name, m]), ...tests].forEach(([label, m]) => {
+    const b = document.createElement("button");
+    b.textContent = label;
+    b.onclick = () => WeatherWidget.show(m);
+    list.append(b);
+  });
+  WeatherWidget.mount();
+</script>
+</body>
+</html>

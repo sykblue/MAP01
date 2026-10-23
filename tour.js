@@ -111,7 +111,7 @@ window.initTour = function (THREE, api) {
     box.className = "kinfo";
     box.innerHTML = `
       <div class="ki-body">
-        <div class="ki-head"><b>${esc(m.name)}</b><span style="background:${tierColor[m.tier]}">${m.tier}</span></div>
+        <div class="ki-head"><b>${esc(m.name)}</b><span class="tier-bg-${m.tier}">${m.tier}</span></div>
         <p>${esc(descOf(m))}</p>
         <div class="ki-foot">${inf.url ? `<a href="${esc(inf.url)}" target="_blank" rel="noopener">위키백과</a>` : ""}<button>상세·로드뷰</button></div>
       </div>`;
@@ -154,8 +154,8 @@ window.initTour = function (THREE, api) {
     const counts = ["S","A","B","C","D"].map(t => [t, list.filter(m => m.tier === t).length]).filter(([, n]) => n);
     card.innerHTML = `
       <div class="tc-head"><span>${idx + 1} / ${STOPS.length}</span><h3>${FULL[stop.region]}</h3></div>
-      <div class="tc-tiers">${counts.map(([t, n]) => `<span style="background:${tierColor[t]}">${t} ${n}</span>`).join("")}</div>
-      <ol>${list.slice(0, 3).map(m => `<li data-n="${m.name}"><b>${m.name}</b> <i style="color:${tierColor[m.tier]}">${m.tier}</i><small>${m.signature}</small></li>`).join("")}</ol>
+      <div class="tc-tiers">${counts.map(([t, n]) => `<span class="tier-bg-${t}">${t} ${n}</span>`).join("")}</div>
+      <ol>${list.slice(0, 3).map(m => `<li data-n="${m.name}"><b>${m.name}</b> <i class="tier-fg-${m.tier}">${m.tier}</i><small>${m.signature}</small></li>`).join("")}</ol>
       <div class="tc-park">🅿️ ${esc(parkText(top))}${parkOf(top).length ? "<small>지도의 파란 P와 줄이 주차장이에요</small>" : ""}</div>
       <button class="tc-go">🐽 ${top.name} 맛집 로드뷰 보기</button>`;
     card.querySelectorAll("li").forEach(li => li.onclick = () => leaveTo(list.find(m => m.name === li.dataset.n)));
@@ -232,7 +232,7 @@ window.initTour = function (THREE, api) {
         nearM = best;
         if (best) {
           const nP = parkOf(best).length;
-          near.innerHTML = `<b style="color:${tierColor[best.tier]}">${best.tier}</b> ${best.name} · ${best.signature}${nP ? ` · 🅿️ ${nP}곳` : ""} <button>보기 (Enter)</button>`;
+          near.innerHTML = `<b class="tier-fg-${best.tier}">${best.tier}</b> ${best.name} · ${best.signature}${nP ? ` · 🅿️ ${nP}곳` : ""} <button>보기 (Enter)</button>`;
           near.querySelector("button").onclick = () => leaveTo(best);
           near.classList.remove("hide");
           showParks(best); showInfo(best);

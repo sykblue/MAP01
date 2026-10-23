@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>꿀꿀 재래시장 티어표</title>
+<meta name="description" content="전국 재래시장을 S~D 티어로 줄 세우고, 티어별 시장 맛집을 게임처럼 모아 보는 페이지">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Gowun+Dodum&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="game-page">
+
+<header class="nav">
+  <div class="wrap">
+    <a class="logo" href="main.html">꿀꿀 <span>재래시장</span> 티어표</a>
+    <nav>
+      <a href="#codex">티어 도감</a>
+      <a href="#gacha">시장 뽑기</a>
+      <a href="#score">게임 룰</a>
+      <a href="#regions">지역 랭킹</a>
+      <a class="btn btn-pig" href="index.html">▶ 티어표</a>
+    </nav>
+  </div>
+</header>
+
+<!-- 시작 화면 -->
+<section class="lobby">
+  <div class="wrap">
+    <div class="lobby-text">
+      <span class="season" id="season">SEASON · 꿀돼지의 시장 원정</span>
+      <h1 class="g-title">전국 시장<br><span>맛집 원정대</span></h1>
+      <p class="g-lead">전국 재래시장을 음식점 데이터로 S부터 D까지 줄 세웠어요. 티어별 보스 시장을 깨고, 시장 안 맛집 카드를 모아 보세요.</p>
+      <div class="g-cta">
+        <a class="g-btn start" href="index.html">▶ GAME START</a>
+        <a class="g-btn ghost" href="#gacha">🎲 오늘의 시장 뽑기</a>
+      </div>
+      <div class="hud">
+        <div><i>🏪</i><b id="hMarkets">-</b><span>시장</span></div>
+        <div><i>🍜</i><b id="hPicks">-</b><span>맛집 카드</span></div>
+        <div><i>🗺️</i><b id="hRegions">-</b><span>지역</span></div>
+        <div><i>👑</i><b id="hKings">-</b><span>S티어 시장</span></div>
+      </div>
+    </div>
+    <div class="npc">
+      <div class="pig-stage">
+        <canvas id="pig" title="돼지를 눌러 보세요"></canvas>
+      </div>
+      <div class="dialog" id="dialog">
+        <span class="who">꿀돼지 <small>Lv.99 시장 안내원</small></span>
+        <p id="bubble">안녕! 나랑 전국 시장 맛집 원정 떠날래?</p>
+        <span class="next">▼</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 티어 도감 -->
+<section class="g-sec" id="codex">
+  <div class="wrap">
+    <div class="g-head">
+      <span class="g-en">TIER CODEX</span>
+      <h2>티어 도감</h2>
+      <p>티어를 고르면 그 티어의 보스 시장 3곳과 시장 안 맛집이 나와요.</p>
+    </div>
+    <div class="g-strip"><div class="chips" id="tierChips"></div></div>
+    <div id="codexBody"></div>
+  </div>
+</section>
+
+<!-- 시장 뽑기 -->
+<section class="g-sec dark" id="gacha">
+  <div class="wrap gacha">
+    <div class="gacha-stage">
+      <div class="gcard" id="gcard">
+        <div class="gcard-back"><b>?</b><span>카드를 뽑아 보세요</span></div>
+      </div>
+      <button class="g-btn start" id="drawBtn">🎲 시장 뽑기</button>
+    </div>
+    <div class="gacha-info">
+      <span class="g-en">DAILY DRAW</span>
+      <h2>오늘의 시장 뽑기</h2>
+      <p>버튼을 누르면 전국 시장 중 한 곳이 나와요. 카드에 나온 맛집을 먹고 오면 퀘스트 클리어!</p>
+      <h3>등급별 확률</h3>
+      <ul class="rates" id="rates"></ul>
+    </div>
+  </div>
+</section>
+
+<!-- 게임 룰 -->
+<section class="g-sec" id="score">
+  <div class="wrap">
+    <div class="g-head">
+      <span class="g-en">GAME RULE</span>
+      <h2>점수는 이렇게 매겨요</h2>
+      <p>시장 중심 반경 <b id="radius">300</b>m 안의 음식점 데이터로 능력치 네 가지를 0~1로 맞춘 뒤, 가중치를 곱해 100점 만점으로 합쳐요.</p>
+    </div>
+    <div class="skills">
+      <div class="skill"><i>🍚</i><b>먹거리 규모</b><span class="w">35%</span><p>반경 안 음식점 수. 로그를 씌워 큰 시장만 앞서지 않게 했어요.</p></div>
+      <div class="skill"><i>🏮</i><b>시장 안 가게</b><span class="w">30%</span><p>건물명에 시장 이름이 들어간 가게 수. 진짜 시장 안 먹거리의 양이에요.</p></div>
+      <div class="skill"><i>🎲</i><b>업종 다양성</b><span class="w">20%</span><p>국밥, 분식, 전, 회처럼 서로 다른 업종이 몇 가지인지.</p></div>
+      <div class="skill"><i>🧑‍🍳</i><b>개인 가게 비율</b><span class="w">15%</span><p>프랜차이즈가 아닌 가게 비율. 시장다운 맛의 지표예요.</p></div>
+    </div>
+    <div class="ladder" id="ladder"></div>
+  </div>
+</section>
+
+<!-- 지역 랭킹 -->
+<section class="g-sec alt" id="regions">
+  <div class="wrap">
+    <div class="g-head">
+      <span class="g-en">REGION LEADERBOARD</span>
+      <h2>지역 랭킹 보드</h2>
+      <p>시·도마다 점수 1등 시장이에요. 여행 가는 지역이 있다면 여기부터!</p>
+    </div>
+    <ol class="board" id="regionBoard"></ol>
+  </div>
+</section>
+
+<section class="continue">
+  <div class="wrap">
+    <span class="g-en">CONTINUE?</span>
+    <h2>208곳 전체 티어표에서<br>다음 시장을 골라 보세요</h2>
+    <a class="g-btn start" href="index.html">▶ PRESS START</a>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    티어는 <b>공식 평가가 아니에요.</b> 시장 중심 반경 내 음식점 수, 시장 건물 안 가게 수, 업종 다양성, 개인 가게 비율을 섞어 계산한 재미용 지표입니다.
+    "맛집"은 별점이 아니라 시장 안·개인 가게를 업종별로 골라 보여 주는 것이니, 방문 전 영업 여부를 꼭 확인하세요. · 데이터: 소상공인시장진흥공단 상가(상권)정보
+  </div>
+</footer>
+
+<script src="data.js"></script>
+<script src="images.js"></script>
+<script src="medal.js"></script>
+<script src="pig.js"></script>
+<script>
+const DATA = window.MARKET_DATA || {meta:{}, markets:[]};
+const MK = DATA.markets;
+const IMG = window.MARKET_IMAGES || {};
+const TIER_COLOR = Object.fromEntries(TIERS.map(([t]) => [t, getComputedStyle(document.documentElement).getPropertyValue("--"+t).trim()]));
+const REGIONS = ["서울","경기","인천","강원","충북","충남","세종","대전","전북","전남","광주","경북","경남","대구","울산","부산","제주"];
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const link = m => `index.html?m=${encodeURIComponent(m.name)}`;
+const byTier = t => MK.filter(m => m.tier === t);
+
+// 시작 화면 숫자
+const ym = DATA.meta.stdrYm || "";
+if (ym) $("season").textContent = `SEASON ${ym.slice(0, 4)}.${ym.slice(4)} · 꿀돼지의 시장 원정`;
+$("hMarkets").textContent = MK.length;
+$("hPicks").textContent = MK.reduce((n, m) => n + m.picks.length, 0);
+$("hRegions").textContent = new Set(MK.map(m => m.region)).size;
+$("hKings").textContent = byTier("S").length;
+$("radius").textContent = DATA.meta.radius || 300;
+
+// 능력치 막대 최대값
+const MAX = {food: Math.max(...MK.map(m => m.food)), inside: Math.max(...MK.map(m => m.inside)), variety: Math.max(...MK.map(m => m.variety))};
+const statBar = (label, v, max, txt) => `<div class="sbar"><span>${label}</span><div><i style="width:${Math.max(4, v / max * 100).toFixed(0)}%"></i></div><b>${txt}</b></div>`;
+
+function picksList(m, n = 3) {
+  if (!m.picks.length) return `<li class="none">반경 안 개인 음식점 데이터가 없어요</li>`;
+  return m.picks.slice(0, n).map(p => `<li><b>${esc(p.n)}</b><span>${esc(p.c)}</span>${p.in ? "<em>시장 안</em>" : ""}</li>`).join("");
+}
+
+// 보스 시장 카드: 사진(있으면) + 능력치 + 맛집
+function bossCard(m, i) {
+  const img = IMG[m.name];
+  return `<article class="boss t-${m.tier}" style="--tc:${TIER_COLOR[m.tier]}">
+    <div class="boss-top">
+      ${img ? `<img loading="lazy" src="${esc(img.src)}" alt="${esc(m.name)} 사진" onerror="this.remove()">` : ""}
+      <span class="boss-no">${i === 0 ? "BOSS" : "STAGE " + (i + 1)}</span>
+      <span class="boss-rank">전국 ${m.rank}위</span>
+    </div>
+    <div class="boss-body">
+      <h3>${esc(m.name)}</h3>
+      <div class="boss-loc">${esc(m.sido || m.region)} ${esc(m.sgg || "")} · 대표 <b>${esc(m.signature)}</b></div>
+      <div class="boss-score"><b>${m.score}</b><span>점</span></div>
+      ${statBar("먹거리", m.food, MAX.food, m.food + "곳")}
+      ${statBar("시장 안", m.inside, MAX.inside, m.inside + "곳")}
+      ${statBar("다양성", m.variety, MAX.variety, m.variety + "종")}
+      ${statBar("개인 가게", m.localRatio, 1, Math.round(m.localRatio * 100) + "%")}
+      <h4>🍽️ 획득 가능한 맛집</h4>
+      <ul class="loot">${picksList(m)}</ul>
+      <a class="g-btn mini" href="${link(m)}">지도·로드뷰로 도전 ▶</a>
+    </div>
+  </article>`;
+}
+
+// 티어 도감
+const tierChips = $("tierChips");
+let codexTier = "S";
+TIERS.forEach(([t, desc, rank]) => {
+  const b = document.createElement("button");
+  b.className = "chip t-" + t;
+  b.dataset.t = t;
+  b.innerHTML = `${medalSVG(t)}<span class="cn"><b>${t} · ${rank}</b><em>${desc}</em><small>${byTier(t).length}곳</small></span>`;
+  b.onclick = () => { showTier(t); say(`<b>${t}티어</b> 도감이야. ${desc}! 보스 시장부터 깨 보자, 꿀꿀~`); };
+  tierChips.appendChild(b);
+});
+function showTier(t) {
+  codexTier = t;
+  [...tierChips.children].forEach(c => c.classList.toggle("on", c.dataset.t === t));
+  const [, desc, rank] = TIERS.find(x => x[0] === t);
+  const list = byTier(t);
+  const idx = TIERS.findIndex(x => x[0] === t) + 1;
+  $("codexBody").innerHTML = `
+    <div class="tier-banner t-${t}">
+      <span class="tab">TIER 0${idx}</span>
+      <div><div class="tb-big"><b>${t}</b><i></i><h2>${desc}</h2></div><div class="tb-en">${rank} · KKUL MARKET RANKING</div></div>
+      <div class="tb-count"><b>${list.length}</b>곳</div>
+      <div class="emblem">${medalSVG(t)}</div>
+    </div>
+    <div class="bosses">${list.slice(0, 3).map(bossCard).join("")}</div>
+    <div class="more">
+      <span>${t}티어의 나머지 ${Math.max(0, list.length - 3)}곳: ${list.slice(3, 9).map(m => esc(m.name)).join(" · ")}${list.length > 9 ? " …" : ""}</span>
+      <a class="g-btn ghost-dark" href="index.html?tier=${t}">${t}티어 전체 보기 ▶</a>
+    </div>`;
+}
+showTier(codexTier);
+
+// 시장 뽑기 (시장마다 같은 확률 → 티어 확률은 분포를 따른다)
+$("rates").innerHTML = TIERS.map(([t, desc, rank]) => {
+  const n = byTier(t).length;
+  return `<li class="t-${t}">${medalSVG(t)}<span><b>${t} · ${rank}</b><small>${desc} · ${n}곳</small></span><em>${(n / MK.length * 100).toFixed(1)}%</em></li>`;
+}).join("");
+const RARE = {S: "✨ 전설 등장! ✨", A: "대박! A티어!", B: "괜찮은데? B티어!", C: "C티어, 동네 맛집이야", D: "D티어, 소소하지만 정겨워"};
+let drawing = false;
+$("drawBtn").onclick = () => {
+  if (drawing || !MK.length) return;
+  drawing = true;
+  const m = MK[Math.floor(Math.random() * MK.length)];
+  const card = $("gcard");
+  card.className = "gcard flip";
+  setTimeout(() => {
+    const [, desc, rank] = TIERS.find(x => x[0] === m.tier);
+    card.className = `gcard open t-${m.tier}`;
+    card.style.setProperty("--tc", TIER_COLOR[m.tier]);
+    card.innerHTML = `
+      <div class="gcard-face">
+        <div class="gc-medal">${medalSVG(m.tier)}</div>
+        <span class="gc-rare">${RARE[m.tier]}</span>
+        <h3>${esc(m.name)}</h3>
+        <div class="gc-loc">${esc(m.sido || m.region)} ${esc(m.sgg || "")} · 전국 ${m.rank}위</div>
+        <div class="gc-sig">대표 <b>${esc(m.signature)}</b></div>
+        <h4>📜 퀘스트: 이 중 한 곳 먹고 오기</h4>
+        <ul class="loot">${picksList(m)}</ul>
+        <a class="g-btn mini" href="${link(m)}">지도에서 보기 ▶</a>
+      </div>`;
+    say(`${RARE[m.tier]} <b>${esc(m.name)}</b>! ${esc(m.signature)} 먹으러 가자, 꿀꿀~`);
+    window.pig.hop();
+    $("drawBtn").textContent = "🎲 다시 뽑기";
+    drawing = false;
+  }, 450);
+};
+
+// 게임 룰: 티어 컷 사다리
+const CUTS = {S: "상위 8%", A: "~25%", B: "~55%", C: "~85%", D: "나머지"};
+$("ladder").innerHTML = TIERS.map(([t, desc, rank]) =>
+  `<div class="rung t-${t}">${medalSVG(t)}<b>${t}</b><span>${rank}</span><em>${CUTS[t]}</em></div>`).join("");
+
+// 지역 랭킹 보드 (데이터가 점수순이라 첫 번째가 1등)
+$("regionBoard").innerHTML = REGIONS.map(r => MK.find(m => m.region === r)).filter(Boolean)
+  .sort((a, b) => a.rank - b.rank)
+  .map((m, i) => `<li>
+    <a href="${link(m)}">
+      <span class="pos">${i + 1}</span>
+      <span class="bm">${medalSVG(m.tier)}</span>
+      <span class="who"><b>${esc(m.name)}</b><small>${esc(m.region)} · ${esc(m.signature)}</small></span>
+      <span class="pts"><i style="width:${m.score}%;background:${TIER_COLOR[m.tier]}"></i></span>
+      <b class="sc">${m.score}</b>
+    </a>
+  </li>`).join("");
+
+// 꿀돼지 대사 (게임 대화창)
+const LINES = [
+  `전국 <b>${MK.length}</b>개 시장 중 1등은 <b>${esc(MK[0]?.name || "-")}</b>! ${esc(MK[0]?.signature || "")} 먹으러 가자.`,
+  "티어 도감에서 보스 시장을 깨면 시장 안 맛집 카드를 얻을 수 있어!",
+  "뭘 먹을지 모르겠으면 <b>시장 뽑기</b>를 눌러 봐. 오늘의 퀘스트를 줄게.",
+  "현금 조금 챙기면 좋아. 온누리상품권 되는 가게도 많아!",
+  "오일장은 날짜가 정해져 있어. 끝자리 2·7일처럼!",
+  "티어는 데이터로 매긴 재미용이야. 진짜 맛은 네 혀가 정하는 거지, 꿀!",
+];
+let line = 0;
+function say(html) {
+  $("bubble").innerHTML = html;
+  window.pigTalkUntil = performance.now() + 2200;
+}
+window.pig = { hop(){} };  // 3D 로딩 전 대비
+const next = () => { line = (line + 1) % LINES.length; say(LINES[line]); window.pig.hop(); };
+$("pig").onclick = next;
+$("dialog").onclick = next;
+say(LINES[0]);
+</script>
+
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
+<script type="module">
+import * as THREE from "three";
+const canvas = document.getElementById("pig");
+const renderer = new THREE.WebGLRenderer({canvas, alpha:true, antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
+camera.position.set(0, 1.4, 6.2);
+camera.lookAt(0, 0.9, 0);
+scene.add(new THREE.HemisphereLight(0xffffff, 0x8f7cc4, 1.5));
+const sun = new THREE.DirectionalLight(0xffffff, 1.6); sun.position.set(3, 5, 4); scene.add(sun);
+const rim = new THREE.DirectionalLight(0xffd45a, 1.2); rim.position.set(-4, 3, -3); scene.add(rim);
+const pig = buildPig(THREE); scene.add(pig.root);
+const shadow = new THREE.Mesh(new THREE.CircleGeometry(1.2, 32), new THREE.MeshBasicMaterial({color:0x000000, transparent:true, opacity:.3}));
+shadow.rotation.x = -Math.PI/2; shadow.position.y = .01; scene.add(shadow);
+
+function resize() {
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
+}
+addEventListener("resize", resize); resize();
+
+let mx = 0, my = 0, hopT = -1, spin = 0;
+addEventListener("pointermove", e => { mx = e.clientX / innerWidth * 2 - 1; my = e.clientY / innerHeight * 2 - 1; });
+window.pig.hop = () => { hopT = 0; spin = Math.PI * 2; window.pigTalkUntil = performance.now() + 2000; };
+
+const clock = new THREE.Clock();
+renderer.setAnimationLoop(() => {
+  const t = clock.getElapsedTime();
+  let y = 0;
+  if (hopT >= 0) { hopT += 1/60; const k = hopT / .55; y = Math.max(0, Math.sin(Math.min(k,1) * Math.PI)) * .7; if (k >= 1) hopT = -1; }
+  pig.root.position.y = y;
+  shadow.scale.setScalar(1 - y * .5);
+  if (spin > 0) { const s = Math.min(spin, .18); spin -= s; pig.root.rotation.y += s; }
+  else pig.root.rotation.y += ((mx * .6 - .2) - pig.root.rotation.y) * .08;
+  pig.head.rotation.x += ((my * .25) - pig.head.rotation.x) * .08;
+  pig.animate(t, {talking: performance.now() < (window.pigTalkUntil || 0)});
+  renderer.render(scene, camera);
+});
+</script>
+</body>
+</html>

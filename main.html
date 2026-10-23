@@ -6,8 +6,8 @@
 <title>꿀꿀 재래시장 티어표</title>
 <meta name="description" content="전국 재래시장을 S~D 티어로 줄 세우고, 티어별 시장 맛집을 게임처럼 모아 보는 페이지">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Gowun+Dodum&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=20261023">
 </head>
 <body class="game-page">
 
@@ -140,6 +140,7 @@
 const DATA = window.MARKET_DATA || {meta:{}, markets:[]};
 const MK = DATA.markets;
 const IMG = window.MARKET_IMAGES || {};
+const imgKey = m => `${m.name}|${m.sgg || ""}`;  // 같은 이름의 시장이 있어 시군구까지 붙인 키
 const REGIONS = ["서울","경기","인천","강원","충북","충남","세종","대전","전북","전남","광주","경북","경남","대구","울산","부산","제주"];
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -167,7 +168,7 @@ function picksList(m, n = 3) {
 
 // 보스 시장 카드: 사진(있으면) + 능력치 + 맛집
 function bossCard(m, i) {
-  const img = IMG[m.name];
+  const img = IMG[imgKey(m)];
   return `<article class="boss t-${m.tier}">
     <div class="boss-top">
       ${img ? `<img loading="lazy" src="${esc(img.src)}" alt="${esc(m.name)} 사진" onerror="this.remove()">` : ""}

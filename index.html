@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>꿀꿀 시장 티어표</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Gowun+Dodum&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=20261023">
 <link rel="stylesheet" href="kakaoAPI/kakao-map.css">
 <link rel="stylesheet" href="weather-widget/weather.css">
 </head>
@@ -198,6 +198,8 @@ function toggleFav(m) {
 
 // 시장 사진 (tools/images.py가 만든 images.js). 없으면 티어 색 카드로 보여 준다
 const IMG = window.MARKET_IMAGES || {};
+// 같은 이름의 시장이 있어 사진은 "이름|시군구" 키로 찾는다
+const imgKey = m => `${m.name}|${m.sgg || ""}`;
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 
 // 시장 카드: 티어 안 1~3위는 시상대 카드, 4위부터는 랭킹 줄
@@ -210,14 +212,14 @@ function hookCard(el, m) {
   el.onkeydown = e => { if (e.key === "Enter" && e.target === el) select(m); };
   el.querySelector(".fav").onclick = e => { e.stopPropagation(); toggleFav(m); };
   // 사진이 안 열리면 사진 없는 모양으로 다시 그린다
-  el.querySelector("img")?.addEventListener("error", () => { delete IMG[m.name]; rerenderSoon(); });
+  el.querySelector("img")?.addEventListener("error", () => { delete IMG[imgKey(m)]; rerenderSoon(); });
   return el;
 }
 const favBtn = m => { const on = favs.has(m.name); return `<button class="fav${on ? " on" : ""}" title="찜하기" aria-pressed="${on}">${on ? "♥" : "♡"}</button>`; };
 
 // 시상대 카드 (pos: 0~2). 사진이 없으면 티어 메달 그림으로 채운다
 function podCard(m, pos) {
-  const img = IMG[m.name];
+  const img = IMG[imgKey(m)];
   const el = document.createElement("article");
   el.className = `pod p${pos + 1} t-${m.tier}`;
   el.innerHTML = `
@@ -241,7 +243,7 @@ function podCard(m, pos) {
 
 // 랭킹 줄 (pos: 티어 안 순위). 사진이 있으면 작은 썸네일, 없으면 티어 배지
 function rankRow(m, pos) {
-  const img = IMG[m.name];
+  const img = IMG[imgKey(m)];
   const el = document.createElement("li");
   el.className = `rrow t-${m.tier}`;
   el.innerHTML = `
@@ -253,6 +255,54 @@ function rankRow(m, pos) {
     <b class="rscore">${m.score}</b>
     ${favBtn(m)}`;
   return hookCard(el, m);
+}
+
+// 가로 티어 패널: 탭·화살표로 넘기고, 보이는 패널 높이에 맞춘다
+// 트랙은 화면 끝까지 넓어서 스크롤바를 뺀 화면 폭을 --vw로 넘겨 준다
+const setVW = () => document.documentElement.style.setProperty("--vw", document.documentElement.clientWidth + "px");
+setVW();
+addEventListener("resize", setVW);
+let activeTier = "S", trackRO;
+function setupTrack(track, pager) {
+  const panels = [...track.children];
+  // 패널 위치는 트랙 왼쪽 여백(--gut)을 빼고 계산한다
+  const left = p => p.offsetLeft - parseFloat(getComputedStyle(track).paddingLeft);
+  const tabs = [...pager.querySelectorAll(".tp-tab")];
+  const prev = pager.querySelector(".prev"), next = pager.querySelector(".next");
+  const current = () => panels.reduce((a, p) => Math.abs(left(p) - track.scrollLeft) < Math.abs(left(a) - track.scrollLeft) ? p : a);
+  // 탭·화살표로 옮긴 뒤에는 scroll 이벤트를 기다리지 않고 직접 높이를 다시 잡는다 (끝나기 전에 한 번, 끝난 뒤 한 번)
+  const go = (p, smooth = true) => {
+    track.scrollTo({left: left(p), behavior: smooth ? "smooth" : "auto"});
+    requestAnimationFrame(sync);
+    setTimeout(sync, smooth ? 500 : 0);
+  };
+  const sync = () => {
+    const p = current(), changed = p.dataset.t !== activeTier;
+    activeTier = p.dataset.t;
+    // 한 화면에 보이는 패널 수 (데스크톱 2, 좁은 화면 1)
+    const pad = parseFloat(getComputedStyle(track).paddingLeft), gap = parseFloat(getComputedStyle(track).columnGap) || 0;
+    const per = Math.max(1, Math.round((track.clientWidth - pad * 2 + gap) / (p.offsetWidth + gap)));
+    const i = panels.indexOf(p), shown = panels.slice(i, i + per);
+    tabs.forEach(b => { const on = shown.some(s => s.dataset.t === b.dataset.t); b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); });
+    prev.disabled = i === 0;
+    next.disabled = i + per >= panels.length;
+    // 위아래 여백(40px)을 더해 보이는 패널 중 가장 긴 것만큼 높이를 잡는다
+    track.style.height = Math.max(...shown.map(s => s.offsetHeight)) + 40 + "px";
+    // 긴 패널 아래쪽에서 넘겼으면 새 패널의 위쪽으로 올려 준다
+    if (changed && pager.getBoundingClientRect().top < 0) pager.scrollIntoView({behavior: "smooth"});
+  };
+  tabs.forEach((b, i) => b.onclick = () => go(panels[i]));
+  prev.onclick = () => { const i = panels.indexOf(current()); if (i > 0) go(panels[i - 1]); };
+  next.onclick = () => { const i = panels.indexOf(current()); if (i < panels.length - 1) go(panels[i + 1]); };
+  let t;
+  track.onscroll = () => { clearTimeout(t); t = setTimeout(sync, 80); };
+  track.onscrollend = sync;
+  // 사진이 늦게 열려 패널 높이가 바뀌어도 맞춘다
+  trackRO?.disconnect();
+  trackRO = new ResizeObserver(() => sync());
+  panels.forEach(p => trackRO.observe(p));
+  go(panels.find(p => p.dataset.t === activeTier) || panels[0], false);
+  sync();
 }
 
 let rerenderTimer;
@@ -267,15 +317,23 @@ function render() {
   fb.textContent = `${favOnly ? "♥" : "♡"} 찜한 시장 ${favs.size}`;
   fb.classList.toggle("on", favOnly);
 
-  // 티어별로 묶어서 S부터 보여 준다 (정렬은 티어 안에서 적용)
+  // 티어별 패널을 가로로 나란히 둔다 (S 오른쪽에 A·B·C·D). 정렬은 티어 안에서 적용
   const board = $("board");
   board.innerHTML = "";
   if (!list.length) board.innerHTML = `<p class="empty-list">조건에 맞는 시장이 없어요.</p>`;
+  const pager = document.createElement("div");
+  pager.className = "tier-pager";
+  pager.innerHTML = `<button class="tp-arrow prev" aria-label="이전 티어">◀</button><div class="tp-tabs"></div><button class="tp-arrow next" aria-label="다음 티어">▶</button>`;
+  const track = document.createElement("div");
+  track.className = "tier-track";
   TIERS.forEach(([t, desc, rank], i) => {
     const items = list.filter(m => m.tier === t);
     if (!items.length) return;
+    pager.querySelector(".tp-tabs").insertAdjacentHTML("beforeend",
+      `<button class="tp-tab t-${t}" data-t="${t}"><span class="tp-dot tier-bg-${t}"></span>${t}<small>${desc} ${items.length}</small></button>`);
     const sec = document.createElement("section");
     sec.className = "tier-sec";
+    sec.dataset.t = t;
     // 게임 등급 배너: 큰 티어 글자 + 메달
     sec.innerHTML = `
       <div class="tier-banner t-${t}">
@@ -298,9 +356,14 @@ function render() {
       items.slice(3).forEach((m, p) => ol.appendChild(rankRow(m, p + 3)));
       sec.appendChild(ol);
     }
-    board.appendChild(sec);
+    track.appendChild(sec);
   });
   KakaoMap.filter(list);
+  if (track.children.length) {
+    board.classList.toggle("single", track.children.length === 1);
+    board.append(pager, track);
+    setupTrack(track, pager);
+  }
 }
 
 // 상세 패널
@@ -322,7 +385,7 @@ function select(m, silent) {
   drawer.querySelector(".drawer-body").scrollTop = 0;
   const d = $("detail");
   const cats = m.topCats.map(([k,v]) => `${k} ${v}`).join(" · ");
-  const img = IMG[m.name];
+  const img = IMG[imgKey(m)];
   d.innerHTML = `
     ${img ? `<figure class="photo"><img src="${esc(img.src)}" alt="${esc(m.name)} 사진"><figcaption>사진: <a href="${esc(img.link)}" target="_blank" rel="noopener">${esc(img.from)}</a>${img.credit ? " · " + esc(img.credit) : ""}</figcaption></figure>` : ""}
     <h2><span class="badge tier-bg-${m.tier}">${m.tier}</span>${m.name}</h2>

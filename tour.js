@@ -37,17 +37,17 @@ window.initTour = function (THREE, api) {
     renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
     renderer.shadowMap.enabled = true;
     scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x10202e);
-    scene.fog = new THREE.Fog(0x10202e, 60, 220);
+    scene.background = new THREE.Color(0xeaf4fb);
+    scene.fog = new THREE.Fog(0xeaf4fb, 60, 220);
     camera = new THREE.PerspectiveCamera(50, 1, .1, 600);
     camera.position.set(0, 160, 140);
-    scene.add(new THREE.HemisphereLight(0xfff1e0, 0x223344, 1.1));
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x8fb3c7, 1.2));
     sun = new THREE.DirectionalLight(0xffe2c0, 1.8);
     sun.castShadow = true; sun.shadow.mapSize.set(1024, 1024);
     Object.assign(sun.shadow.camera, {left: -20, right: 20, top: 20, bottom: -20, near: 1, far: 120});
     scene.add(sun, sun.target);
 
-    const sea = new THREE.Mesh(new THREE.PlaneGeometry(1200, 1200), new THREE.MeshStandardMaterial({color: 0x1d4560, roughness: .9}));
+    const sea = new THREE.Mesh(new THREE.PlaneGeometry(1200, 1200), new THREE.MeshStandardMaterial({color: 0x9cc9e0, roughness: .9}));
     sea.rotation.x = -Math.PI / 2; sea.receiveShadow = true; scene.add(sea);
 
     const PALETTE = [0xc9a27a, 0xb98f64, 0xd6b48c, 0xa9875f, 0xceb18a, 0xbf9a6e];
@@ -161,8 +161,8 @@ window.initTour = function (THREE, api) {
     const counts = ["S","A","B","C","D"].map(t => [t, list.filter(m => m.tier === t).length]).filter(([, n]) => n);
     card.innerHTML = `
       <div class="tc-head"><span>${idx + 1} / ${STOPS.length}</span><h3>${FULL[stop.region]}</h3></div>
-      <div class="tc-tiers">${counts.map(([t, n]) => `<span style="background:${tierColor[t]}">${t} ${n}</span>`).join("")}</div>
-      <ol>${list.slice(0, 3).map(m => `<li data-n="${m.name}"><b>${m.name}</b> <i style="color:${tierColor[m.tier]}">${m.tier}</i><small>${m.signature}</small></li>`).join("")}</ol>
+      <div class="tc-tiers">${counts.map(([t, n]) => `<span class="tier-bg-${t}">${t} ${n}</span>`).join("")}</div>
+      <ol>${list.slice(0, 3).map(m => `<li data-n="${m.name}"><b>${m.name}</b> <i class="tier-fg-${m.tier}">${m.tier}</i><small>${m.signature}</small></li>`).join("")}</ol>
       <button class="tc-go">🐽 ${top.name} 맛집 로드뷰 보기</button>`;
     card.querySelectorAll("li").forEach(li => li.onclick = () => leaveTo(list.find(m => m.name === li.dataset.n)));
     card.querySelector(".tc-go").onclick = () => leaveTo(top);
@@ -231,7 +231,7 @@ window.initTour = function (THREE, api) {
       if (best !== nearM) {
         nearM = best;
         if (best) {
-          near.innerHTML = `<b style="color:${tierColor[best.tier]}">${best.tier}</b> ${best.name} · ${best.signature} <button>보기 (Enter)</button>`;
+          near.innerHTML = `<b class="tier-fg-${best.tier}">${best.tier}</b> ${best.name} · ${best.signature} <button>보기 (Enter)</button>`;
           near.querySelector("button").onclick = () => leaveTo(best);
           near.classList.remove("hide");
           pigSay(`<b>${best.name}</b> 도착! ${best.tier}티어, ${best.signature} 맛집이 있어.`);

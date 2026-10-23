@@ -1,0 +1,11 @@
+# Vercel CLI 배포 때 올리지 않을 파일
+# 비밀 값: .env에는 SDSC_KEY·REST 키가 있다. 배포 환경변수는 Vercel 프로젝트 설정에 따로 넣는다
+.env
+# env.js는 배포 때 vercel.json의 buildCommand가 Vercel 환경변수로 새로 만든다
+kakaoAPI/env.js
+weather-widget/env.js
+# 데이터 수집용(사이트에는 필요 없음)
+tools/.cache
+tools/__pycache__
+tools/*.log
+.vscode

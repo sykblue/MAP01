@@ -86,7 +86,23 @@ main{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px;
 .tour-btn:active{transform:translateY(2px);box-shadow:0 2px 0 #c2185b}
 #tour{position:fixed;inset:0;z-index:1500;background:#10202e}
 #tour.hidden{display:none}
-#tour canvas{width:100%;height:100%;display:block}
+#tour .kmap{position:absolute;inset:0}
+#tour>:not(.kmap){z-index:3}
+#tour .tour-pig{position:absolute;left:50%;top:50%;width:260px;height:260px;transform:translate(-50%,-58%);pointer-events:none;z-index:2}
+.kdot{width:12px;height:12px;border-radius:50%;border:2px solid #1b1412;cursor:pointer}
+.kdot.top{width:18px;height:18px;box-shadow:0 0 0 3px rgba(255,255,255,.7)}
+.kinfo{width:240px;background:rgba(39,29,26,.96);border:1px solid var(--line);border-radius:14px;overflow:hidden;color:var(--ink);font-family:"Gowun Dodum";box-shadow:0 8px 24px rgba(0,0,0,.45)}
+.kinfo img{display:block;width:100%;height:130px;object-fit:cover;background:#120d0b}
+.ki-body{padding:10px 12px}
+.ki-head{display:flex;gap:6px;align-items:center;justify-content:space-between}
+.ki-head b{font-family:"Black Han Sans";font-weight:400;font-size:18px}
+.ki-head span{color:#1b1412;border-radius:6px;padding:1px 7px;font-family:"Black Han Sans";font-size:13px}
+.kinfo p{margin:6px 0 8px;font-size:12.5px;line-height:1.5;white-space:normal;display:-webkit-box;-webkit-line-clamp:4;line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.ki-foot{display:flex;gap:8px;align-items:center;font-size:12px}
+.ki-foot a,.ki-credit a{color:var(--accent)}
+.ki-foot button{margin-left:auto;background:var(--pig);color:#3a0f22;border:0;border-radius:999px;padding:5px 10px;font:inherit;font-weight:700;cursor:pointer}
+.ki-credit{display:block;font-size:10px;color:var(--muted);margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.klabel{font-family:"Black Han Sans";font-size:16px;white-space:nowrap;pointer-events:none;text-shadow:0 0 3px #1b1412,0 0 3px #1b1412,0 0 6px #1b1412}
 .tour-top{position:absolute;top:12px;left:12px;right:12px;display:flex;gap:8px;align-items:flex-start;justify-content:space-between;pointer-events:none}
 .tour-top>*{pointer-events:auto}
 .tour-dots{display:flex;flex-wrap:wrap;gap:4px;max-width:calc(100% - 60px)}
@@ -104,6 +120,7 @@ main{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px;
 .tour-card li i{font-style:normal;font-family:"Black Han Sans"}
 .tour-card li small{display:block;color:var(--muted)}
 .tc-park{font-size:13px;color:var(--park);margin:0 0 10px}
+.tc-park small{display:block;color:var(--muted);font-size:11px;margin-top:2px}
 .tc-go{width:100%;background:var(--pig);color:#3a0f22;border:0;border-radius:10px;padding:10px;font:inherit;font-weight:700;cursor:pointer}
 .tour-ctrl{position:absolute;right:12px;bottom:14px;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
 .tour-near{position:absolute;left:50%;top:70px;transform:translateX(-50%);background:rgba(39,29,26,.92);border:1px solid var(--line);border-radius:999px;padding:8px 8px 8px 14px;display:flex;gap:8px;align-items:center;white-space:nowrap;max-width:calc(100vw - 24px);overflow:hidden;transition:opacity .2s}
@@ -137,7 +154,7 @@ body.touring #tour.free ~ #bubble{bottom:190px}
     <p id="meta">소상공인시장진흥공단 상가(상권)정보 기반 · 시장 반경 내 음식점으로 매긴 먹거리 티어</p>
   </div>
   <div class="controls">
-    <button id="tourBtn" class="tour-btn">🐷 3D 돼지 투어</button>
+    <button id="tourBtn" class="tour-btn">🐷 돼지 스카이뷰 투어</button>
     <input id="q" class="search" placeholder="시장 이름 검색 (예: 광장)" autocomplete="off">
   </div>
 </header>
@@ -169,7 +186,8 @@ body.touring #tour.free ~ #bubble{bottom:190px}
 
 <canvas id="pig" title="돼지를 눌러 보세요"></canvas>
 <div id="tour" class="hidden">
-  <canvas></canvas>
+  <div class="kmap"></div>
+  <canvas class="tour-pig"></canvas>
   <div class="tour-top">
     <div class="tour-dots"></div>
     <button class="t-close" title="닫기 (Esc)">✕</button>
@@ -180,7 +198,7 @@ body.touring #tour.free ~ #bubble{bottom:190px}
     <span></span><button data-key="arrowup">▲</button><span></span>
     <button data-key="arrowleft">◀</button><button data-key="arrowdown">▼</button><button data-key="arrowright">▶</button>
   </div>
-  <div class="tour-help">방향키·WASD 자유 이동 · Esc 닫기</div>
+  <div class="tour-help">방향키·WASD 자유 비행 · 시장 점을 누르면 상세 · Esc 닫기</div>
   <div class="tour-ctrl">
     <button class="t-prev">◀ 이전</button>
     <button class="t-auto">⏸ 자동</button>
@@ -192,8 +210,10 @@ body.touring #tour.free ~ #bubble{bottom:190px}
 
 <script src="data.js"></script>
 <script src="parking.js"></script>
-<script src="geo.js"></script>
+<script src="info.js"></script>
 <script src="pig.js"></script>
+<!-- 카카오맵 JavaScript 키: 공개용 키이며, Kakao Developers > 플랫폼 > Web에 등록한 주소에서만 지도가 뜬다 -->
+<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=fa6894aef4f6e6fad7770848e1ad859c&autoload=false"></script>
 <script src="tour.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
@@ -396,11 +416,19 @@ function pigSay(html) {
 }
 window.pig = { hop(){} };  // 3D 로딩 전 대비
 let tour = null;
-document.getElementById("tourBtn").onclick = () => tour ? tour.open() : pigSay("3D를 불러오는 중이야, 잠깐만! 꿀");
+let tourError = "";
+document.getElementById("tourBtn").onclick = () => tour ? tour.open() : pigSay(tourError || "지도를 불러오는 중이야, 잠깐만! 꿀");
 window.startTour = THREE => {
-  tour = initTour(THREE, {
-    markets: MK, geo: window.KOREA_GEO, tierColor: TIER_COLOR, pigSay, parkOf,
-    openMarket: m => { region = "전국"; [...chips.children].forEach((c, i) => c.classList.toggle("on", i === 0)); select(m); },
+  if (!window.kakao?.maps) {
+    tourError = "카카오 지도를 못 불러왔어. 😢 Kakao Developers에 이 주소(도메인)가 등록됐는지 확인해 줘! 파일을 바로 열면 안 되고 Live Server로 열어야 해.";
+    return;
+  }
+  kakao.maps.load(() => {
+    tour = initTour(THREE, {
+      markets: MK, tierColor: TIER_COLOR, pigSay, parkOf,
+      infoOf: m => (window.MARKET_INFO || {})[`${m.region} ${m.name}`] || {},
+      openMarket: m => { region = "전국"; [...chips.children].forEach((c, i) => c.classList.toggle("on", i === 0)); select(m); },
+    });
   });
 };
 document.getElementById("pig").onclick = () => { pigSay(TIPS[Math.floor(Math.random()*TIPS.length)]); pig.hop(); };

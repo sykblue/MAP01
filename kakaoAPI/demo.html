@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>카카오맵 데모</title>
+<link rel="stylesheet" href="kakao-map.css">
+<style>
+  body { margin: 0; padding: 24px 16px; background: #1b1412; color: #f7ead9; font-family: "Gowun Dodum", system-ui, sans-serif; }
+  h1 { margin: 0 0 6px; font-family: "Black Han Sans", sans-serif; font-weight: 400; }
+  p { margin: 0 0 16px; color: #bfa58e; font-size: 14px; }
+  .list { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .list button { background: #33261f; border: 1px solid #4a372d; color: inherit; border-radius: 10px; padding: 6px 10px; font: inherit; font-size: 14px; cursor: pointer; }
+  .list button:hover { border-color: #ffb36b; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  #map { height: 360px; background: #2b211c; border-radius: 12px; overflow: hidden; }
+  #rv { aspect-ratio: 16/10; background: #120d0b; border-radius: 12px; overflow: hidden; }
+  @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<h1>카카오맵 데모</h1>
+<p>Live Server(포트 5502)로 여세요. 지역을 고르면 지도가 맞춰지고, 시장 점을 누르면 확대·가게 점·로드뷰가 바뀝니다.</p>
+<div class="list" id="chips"></div>
+<div class="grid"><div id="map"></div><div id="rv"></div></div>
+<p id="sel" style="margin-top:12px"></p>
+
+<script src="../data.js"></script>
+<script src="env.js"></script>
+<script src="kakao-map.js"></script>
+<script>
+  const MK = window.MARKET_DATA ? MARKET_DATA.markets : [];
+  const TIER_COLOR = {S: "#ff5a5f", A: "#ff9f43", B: "#f7c948", C: "#58c4dd", D: "#9aa5b1"};  // ../index.html의 --S~--D
+  const rv = document.getElementById("rv"), sel = document.getElementById("sel");
+
+  function select(m) {
+    const first = m.picks[0] || m;
+    KakaoMap.focus(m, i => {
+      const p = m.picks[i];
+      KakaoMap.roadview(rv, p.lat, p.lon);
+      sel.textContent = `${m.name} › ${p.n} (${p.c})`;
+    });
+    KakaoMap.roadview(rv, first.lat, first.lon);
+    sel.textContent = `${m.tier} · ${m.name}`;
+  }
+
+  KakaoMap.mount(document.getElementById("map"), {markets: MK, tierColor: TIER_COLOR, onSelect: select});
+  ["전국", ...new Set(MK.map(m => m.region))].forEach(r => {
+    const b = document.createElement("button");
+    b.textContent = r;
+    b.onclick = () => {
+      const list = r === "전국" ? MK : MK.filter(m => m.region === r);
+      KakaoMap.filter(list);
+      KakaoMap.fit(list);
+    };
+    document.getElementById("chips").append(b);
+  });
+</script>
+</body>
+</html>

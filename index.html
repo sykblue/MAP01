@@ -1,0 +1,393 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>꿀꿀 시장 티어표</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Gowun+Dodum&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+:root{
+  --bg:#1b1412; --panel:#271d1a; --panel2:#33261f; --line:#4a372d;
+  --ink:#f7ead9; --muted:#bfa58e; --accent:#ffb36b; --pig:#ff9ec4;
+  --S:#ff5a5f; --A:#ff9f43; --B:#f7c948; --C:#58c4dd; --D:#9aa5b1;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Gowun Dodum",system-ui,sans-serif}
+body{background:radial-gradient(1200px 500px at 10% -10%,#4a2a1a 0,transparent 60%),var(--bg);min-height:100vh}
+h1,h2,.tier-label,.display{font-family:"Black Han Sans",sans-serif;font-weight:400;letter-spacing:.5px}
+header{padding:20px 20px 8px;display:flex;flex-wrap:wrap;gap:12px 24px;align-items:end;justify-content:space-between}
+header h1{margin:0;font-size:clamp(28px,4vw,44px);line-height:1}
+header h1 span{color:var(--pig)}
+header p{margin:6px 0 0;color:var(--muted);font-size:14px}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.search{background:var(--panel);border:1px solid var(--line);color:var(--ink);border-radius:999px;padding:9px 14px;font:inherit;min-width:200px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;padding:4px 20px 14px}
+.chip{background:var(--panel);border:1px solid var(--line);color:var(--muted);border-radius:999px;padding:6px 12px;cursor:pointer;font:inherit;font-size:14px}
+.chip.on{background:var(--accent);color:#2a1608;border-color:var(--accent);font-weight:700}
+main{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:16px;padding:0 20px 220px}
+@media (max-width:980px){main{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+/* 티어표 */
+.tier-row{display:grid;grid-template-columns:72px 1fr;border-bottom:1px solid var(--line)}
+.tier-row:last-child{border-bottom:0}
+.tier-label{display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:34px;color:#1b1412}
+.tier-label small{font-family:"Gowun Dodum";font-size:11px;font-weight:700;opacity:.75}
+.tier-items{display:flex;flex-wrap:wrap;gap:6px;padding:10px;min-height:56px;align-content:flex-start}
+.m{background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:6px 9px;cursor:pointer;font:inherit;font-size:13px;display:flex;gap:6px;align-items:center;transition:transform .12s,border-color .12s}
+.m:hover{transform:translateY(-2px);border-color:var(--accent)}
+.m.sel{border-color:var(--pig);box-shadow:0 0 0 2px var(--pig) inset}
+.m .rg{font-size:11px;color:var(--muted)}
+.empty{color:var(--muted);font-size:13px;padding:8px}
+/* 상세 */
+.side{display:flex;flex-direction:column;gap:16px;position:sticky;top:12px;align-self:start}
+@media (max-width:980px){.side{position:static}}
+#map{height:260px;background:#2b211c}
+.detail{padding:16px}
+.detail h2{margin:0;font-size:28px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.badge{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:10px;color:#1b1412;font-size:24px;font-family:"Black Han Sans"}
+.sub{color:var(--muted);font-size:14px;margin:4px 0 12px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.stat{background:var(--panel2);border-radius:10px;padding:8px;text-align:center}
+.stat b{display:block;font-family:"Black Han Sans";font-size:20px;font-weight:400}
+.stat span{font-size:11px;color:var(--muted)}
+.picks{list-style:none;padding:0;margin:0;display:grid;gap:6px;max-height:260px;overflow:auto}
+.pick{display:flex;justify-content:space-between;gap:8px;align-items:center;background:var(--panel2);border:1px solid transparent;border-radius:10px;padding:8px 10px;cursor:pointer}
+.pick:hover,.pick.on{border-color:var(--accent)}
+.pick .nm{font-weight:700}
+.pick .ct{font-size:12px;color:var(--muted)}
+.pick .tag{font-size:11px;background:var(--pig);color:#3a0f22;border-radius:6px;padding:2px 6px;white-space:nowrap}
+.rv{position:relative;aspect-ratio:16/10;background:#120d0b}
+.rv iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.rv-bar{display:flex;flex-wrap:wrap;gap:6px;padding:10px 12px;align-items:center;justify-content:space-between;border-top:1px solid var(--line)}
+.rv-bar .lbl{font-size:13px;color:var(--muted)}
+.rv-bar a{color:var(--accent);font-size:13px;text-decoration:none;border:1px solid var(--line);padding:5px 10px;border-radius:999px}
+.note{color:var(--muted);font-size:12px;line-height:1.6;padding:0 20px 20px}
+/* 돼지 */
+#pig{position:fixed;left:8px;bottom:0;width:220px;height:220px;z-index:1000;cursor:pointer}
+#bubble{position:fixed;left:200px;bottom:120px;max-width:min(360px,calc(100vw - 220px));background:#fff4e6;color:#3a2416;border-radius:16px;padding:12px 14px;font-size:14px;line-height:1.5;z-index:1001;box-shadow:0 8px 24px rgba(0,0,0,.4);transition:opacity .2s,transform .2s}
+#bubble::before{content:"";position:absolute;left:-10px;bottom:22px;border:10px solid transparent;border-right-color:#fff4e6;border-left:0}
+#bubble b{color:#c2185b}
+#bubble.hide{opacity:0;transform:translateY(8px)}
+@media (max-width:600px){#pig{width:150px;height:150px}#bubble{left:130px;bottom:80px;max-width:calc(100vw - 146px);font-size:13px}main{padding-bottom:180px}}
+.leaflet-container{font-family:"Gowun Dodum"}
+.dot{width:12px;height:12px;border-radius:50%;border:2px solid #1b1412}
+/* 3D 투어 */
+.tour-btn{background:var(--pig);color:#3a0f22;border:0;border-radius:999px;padding:10px 16px;font:inherit;font-weight:700;cursor:pointer;box-shadow:0 4px 0 #c2185b}
+.tour-btn:active{transform:translateY(2px);box-shadow:0 2px 0 #c2185b}
+#tour{position:fixed;inset:0;z-index:1500;background:#10202e}
+#tour.hidden{display:none}
+#tour canvas{width:100%;height:100%;display:block}
+.tour-top{position:absolute;top:12px;left:12px;right:12px;display:flex;gap:8px;align-items:flex-start;justify-content:space-between;pointer-events:none}
+.tour-top>*{pointer-events:auto}
+.tour-dots{display:flex;flex-wrap:wrap;gap:4px;max-width:calc(100% - 60px)}
+.tour-dots button,.tour-ctrl button,.tour-pad button{background:rgba(39,29,26,.85);color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:6px 10px;font:inherit;font-size:13px;cursor:pointer}
+.tour-dots button.on{background:var(--accent);color:#2a1608;border-color:var(--accent)}
+.t-close{font-size:16px!important;padding:6px 12px!important}
+.tour-card{position:absolute;right:12px;top:110px;width:min(300px,calc(100vw - 24px));background:rgba(39,29,26,.92);border:1px solid var(--line);border-radius:16px;padding:14px;transition:opacity .25s,transform .25s}
+.tour-card.hide,.tour-near.hide{opacity:0;transform:translateY(-8px);pointer-events:none}
+.tc-head span{font-size:12px;color:var(--muted)}
+.tc-head h3{margin:2px 0 8px;font-family:"Black Han Sans";font-weight:400;font-size:26px}
+.tc-tiers{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px}
+.tc-tiers span{color:#1b1412;border-radius:6px;padding:2px 7px;font-size:12px;font-weight:700}
+.tour-card ol{margin:0 0 10px;padding-left:20px;display:grid;gap:6px}
+.tour-card li{cursor:pointer}
+.tour-card li i{font-style:normal;font-family:"Black Han Sans"}
+.tour-card li small{display:block;color:var(--muted)}
+.tc-go{width:100%;background:var(--pig);color:#3a0f22;border:0;border-radius:10px;padding:10px;font:inherit;font-weight:700;cursor:pointer}
+.tour-ctrl{position:absolute;right:12px;bottom:14px;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.tour-near{position:absolute;left:50%;top:70px;transform:translateX(-50%);background:rgba(39,29,26,.92);border:1px solid var(--line);border-radius:999px;padding:8px 8px 8px 14px;display:flex;gap:8px;align-items:center;white-space:nowrap;max-width:calc(100vw - 24px);overflow:hidden;transition:opacity .2s}
+.tour-near button{background:var(--accent);border:0;border-radius:999px;padding:5px 10px;font:inherit;cursor:pointer}
+.tour-pad{position:absolute;left:50%;bottom:64px;transform:translateX(-50%);display:none;grid-template-columns:repeat(3,52px);gap:6px}
+.tour-pad button{height:46px;font-size:18px;border-radius:12px;touch-action:none;user-select:none}
+#tour.free .tour-pad{display:grid}
+.tour-help{position:absolute;left:12px;bottom:14px;color:var(--muted);font-size:12px}
+body.touring #pig{display:none}
+body.touring #bubble{left:50%;bottom:max(90px,12vh);transform:translateX(-50%);z-index:2000;max-width:min(460px,calc(100vw - 24px))}
+body.touring #bubble.hide{transform:translate(-50%,8px)}
+body.touring #bubble::before{display:none}
+body.touring #tour.free ~ #bubble{bottom:190px}
+@media (max-width:600px){
+  .tour-dots{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+  .tour-dots button{flex:none}
+  .tour-card{top:58px;right:12px;padding:10px 12px}
+  .tour-card ol{display:none}
+  .tc-head h3{font-size:20px;margin-bottom:6px}
+  .tour-help{display:none}
+  body.touring #bubble{bottom:62px}
+  body.touring #tour.free ~ #bubble{bottom:222px}
+  .tour-near{top:58px}
+}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>꿀꿀 <span>재래시장</span> 티어표</h1>
+    <p id="meta">소상공인시장진흥공단 상가(상권)정보 기반 · 시장 반경 내 음식점으로 매긴 먹거리 티어</p>
+  </div>
+  <div class="controls">
+    <button id="tourBtn" class="tour-btn">🐷 3D 돼지 투어</button>
+    <input id="q" class="search" placeholder="시장 이름 검색 (예: 광장)" autocomplete="off">
+  </div>
+</header>
+<div class="chips" id="chips"></div>
+
+<main>
+  <section class="card" id="board"></section>
+  <aside class="side">
+    <div class="card"><div id="map"></div></div>
+    <div class="card detail" id="detail"></div>
+    <div class="card">
+      <div class="rv" id="rv"></div>
+      <div class="rv-bar">
+        <span class="lbl" id="rvLabel">로드뷰</span>
+        <span style="display:flex;gap:6px;flex-wrap:wrap">
+          <a id="kakaoRv" target="_blank" rel="noopener">카카오 로드뷰</a>
+          <a id="naverMap" target="_blank" rel="noopener">네이버 지도</a>
+        </span>
+      </div>
+    </div>
+  </aside>
+</main>
+<p class="note">
+  티어는 <b>공식 평가가 아니에요.</b> 시장 중심 반경 내 음식점 수, 시장 건물 안 가게 수, 업종 다양성, 개인 가게 비율을 섞어 계산한 재미용 지표입니다.
+  "맛집" 목록은 별점이 아니라 시장 안·개인 가게를 업종별로 골라 보여 주는 것이니, 방문 전 영업 여부를 꼭 확인하세요.
+  로드뷰는 Google 스트리트뷰 임베드이며, 안 보이면 카카오 로드뷰 버튼을 눌러 주세요.
+</p>
+
+<canvas id="pig" title="돼지를 눌러 보세요"></canvas>
+<div id="tour" class="hidden">
+  <canvas></canvas>
+  <div class="tour-top">
+    <div class="tour-dots"></div>
+    <button class="t-close" title="닫기 (Esc)">✕</button>
+  </div>
+  <div class="tour-near hide"></div>
+  <div class="tour-card hide"></div>
+  <div class="tour-pad">
+    <span></span><button data-key="arrowup">▲</button><span></span>
+    <button data-key="arrowleft">◀</button><button data-key="arrowdown">▼</button><button data-key="arrowright">▶</button>
+  </div>
+  <div class="tour-help">방향키·WASD 자유 이동 · Esc 닫기</div>
+  <div class="tour-ctrl">
+    <button class="t-prev">◀ 이전</button>
+    <button class="t-auto">⏸ 자동</button>
+    <button class="t-next">다음 ▶</button>
+    <button class="t-free">🕹 자유 이동</button>
+  </div>
+</div>
+<div id="bubble"></div>
+
+<script src="data.js"></script>
+<script src="geo.js"></script>
+<script src="pig.js"></script>
+<script src="tour.js"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const DATA = window.MARKET_DATA || {meta:{}, markets:[]};
+const MK = DATA.markets;
+const TIERS = [["S","무조건 가라"],["A","강력 추천"],["B","가볼 만함"],["C","동네 맛"],["D","소소함"]];
+const TIER_COLOR = Object.fromEntries(TIERS.map(([t]) => [t, getComputedStyle(document.documentElement).getPropertyValue("--"+t).trim()]));
+const REGIONS = ["전국","서울","경기","인천","강원","충북","충남","세종","대전","전북","전남","광주","경북","경남","대구","울산","부산","제주"];
+let region = "전국", query = "", selected = null;
+
+document.getElementById("meta").textContent +=
+  ` · 기준 ${DATA.meta.stdrYm ? DATA.meta.stdrYm.slice(0,4)+"."+DATA.meta.stdrYm.slice(4) : "-"} · ${MK.length}곳`;
+
+const chips = document.getElementById("chips");
+REGIONS.forEach(r => {
+  const n = r === "전국" ? MK.length : MK.filter(m => m.region === r).length;
+  if (!n) return;
+  const b = document.createElement("button");
+  b.className = "chip" + (r === region ? " on" : "");
+  b.textContent = `${r} ${n}`;
+  b.onclick = () => { region = r; [...chips.children].forEach(c => c.classList.toggle("on", c === b)); render(); fitRegion(); pigSay(regionLine(r)); };
+  chips.appendChild(b);
+});
+document.getElementById("q").oninput = e => { query = e.target.value.trim(); render(); };
+
+function visible() {
+  return MK.filter(m => (region === "전국" || m.region === region) && (!query || m.name.includes(query) || (m.sgg||"").includes(query)));
+}
+
+function render() {
+  const list = visible();
+  const board = document.getElementById("board");
+  board.innerHTML = "";
+  TIERS.forEach(([t, desc]) => {
+    const row = document.createElement("div");
+    row.className = "tier-row";
+    row.innerHTML = `<div class="tier-label" style="background:${TIER_COLOR[t]}">${t}<small>${desc}</small></div><div class="tier-items"></div>`;
+    const box = row.lastChild;
+    const items = list.filter(m => m.tier === t);
+    if (!items.length) box.innerHTML = `<span class="empty">없음</span>`;
+    items.forEach(m => {
+      const b = document.createElement("button");
+      b.className = "m" + (selected === m ? " sel" : "");
+      b.innerHTML = `${m.name}<span class="rg">${m.region}</span>`;
+      b.onclick = () => select(m);
+      box.appendChild(b);
+    });
+    board.appendChild(row);
+  });
+  markers.forEach(({m, mk}) => {
+    const on = list.includes(m);
+    mk.setStyle({opacity: on ? 1 : .15, fillOpacity: on ? .95 : .1});
+  });
+}
+
+// 지도
+const map = L.map("map", {zoomControl:false, attributionControl:true}).setView([36.3, 127.8], 6);
+L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  attribution: "&copy; OpenStreetMap", maxZoom: 19
+}).addTo(map);
+const markers = MK.map(m => {
+  const mk = L.circleMarker([m.lat, m.lon], {radius: m.tier === "S" ? 7 : 5, color:"#1b1412", weight:1.5, fillColor: TIER_COLOR[m.tier], fillOpacity:.95})
+    .bindTooltip(`${m.tier} · ${m.name}`).on("click", () => select(m)).addTo(map);
+  return {m, mk};
+});
+let pickLayer = L.layerGroup().addTo(map);
+function fitRegion() {
+  const pts = visible().map(m => [m.lat, m.lon]);
+  if (pts.length) map.fitBounds(pts, {padding:[20,20], maxZoom: 12});
+}
+
+function select(m, silent) {
+  selected = m;
+  render();
+  const d = document.getElementById("detail");
+  const cats = m.topCats.map(([k,v]) => `${k} ${v}`).join(" · ");
+  d.innerHTML = `
+    <h2><span class="badge" style="background:${TIER_COLOR[m.tier]}">${m.tier}</span>${m.name}</h2>
+    <div class="sub">${m.sido || m.region} ${m.sgg || ""} · 전국 ${m.rank}위 · 대표 먹거리 <b>${m.signature}</b></div>
+    <div class="stats">
+      <div class="stat"><b>${m.score}</b><span>점수</span></div>
+      <div class="stat"><b>${m.food}</b><span>반경 음식점</span></div>
+      <div class="stat"><b>${m.inside}</b><span>시장 안 가게</span></div>
+      <div class="stat"><b>${m.variety}</b><span>업종 수</span></div>
+    </div>
+    <div class="sub" style="margin:0 0 8px">많은 업종: ${cats || "-"}${m.located ? "" : " · 위치는 대략값"}</div>
+    <ul class="picks" id="picks"></ul>`;
+  const ul = d.querySelector("#picks");
+  pickLayer.clearLayers();
+  if (!m.picks.length) ul.innerHTML = `<li class="empty">반경 안에 개인 음식점 데이터가 없어요.</li>`;
+  m.picks.forEach((p, i) => {
+    const li = document.createElement("li");
+    li.className = "pick";
+    li.innerHTML = `<div><div class="nm">${p.n}</div><div class="ct">${p.c} · ${p.a || ""}${p.f ? " " + p.f + "층" : ""}</div></div>${p.in ? '<span class="tag">시장 안</span>' : ""}`;
+    li.onclick = () => { [...ul.children].forEach(c => c.classList.toggle("on", c === li)); showRoadview(p.lat, p.lon, `${p.n} (${p.c})`, p.n); pigSay(`<b>${p.n}</b>! ${p.c} 집이야. 로드뷰로 앞까지 데려다줄게, 꿀꿀~`); pig.hop(); };
+    ul.appendChild(li);
+    L.circleMarker([p.lat, p.lon], {radius:4, color:"#fff", weight:1, fillColor:"#ff9ec4", fillOpacity:1}).bindTooltip(p.n).on("click", () => li.click()).addTo(pickLayer);
+  });
+  map.setView([m.lat, m.lon], 16);
+  const first = m.picks[0];
+  showRoadview(first ? first.lat : m.lat, first ? first.lon : m.lon, first ? `${first.n} (${first.c})` : m.name, first ? first.n : m.name);
+  if (first) ul.firstChild.classList.add("on");
+  if (!silent) { pigSay(tierLine(m)); pig.hop(); }
+  if (innerWidth < 980) document.getElementById("detail").scrollIntoView({behavior:"smooth", block:"start"});
+}
+
+function showRoadview(lat, lon, label, q) {
+  document.getElementById("rv").innerHTML =
+    `<iframe loading="lazy" allowfullscreen referrerpolicy="no-referrer-when-downgrade"
+      src="https://www.google.com/maps?layer=c&cbll=${lat},${lon}&cbp=12,0,0,0,5&output=svembed"></iframe>`;
+  document.getElementById("rvLabel").textContent = "로드뷰 · " + label;
+  document.getElementById("kakaoRv").href = `https://map.kakao.com/link/roadview/${lat},${lon}`;
+  document.getElementById("naverMap").href = `https://map.naver.com/p/search/${encodeURIComponent((selected?.sgg || "") + " " + q)}`;
+}
+
+// 돼지 대사
+const LINES = {
+  S: m => `꿀꿀! <b>${m.name}</b>은(는) <b>S티어</b>야! 반경에 음식점이 ${m.food}곳이나 있어. ${m.signature}부터 먹고 시작하자!`,
+  A: m => `<b>${m.name}</b>, A티어! 시장 안에만 가게가 ${m.inside}곳. ${m.signature} 꼭 먹어 봐, 꿀~`,
+  B: m => `<b>${m.name}</b>은 B티어. 소문난 건 ${m.signature}! 동네 사람들 따라가면 실패 없어.`,
+  C: m => `<b>${m.name}</b>은 C티어지만 정은 S급이야. ${m.signature} 한 그릇 어때?`,
+  D: m => `<b>${m.name}</b>은 아담한 D티어. 장날 맞춰 가면 훨씬 재밌어! 대표는 ${m.signature}.`,
+};
+const tierLine = m => LINES[m.tier](m);
+function regionLine(r) {
+  const list = r === "전국" ? MK : MK.filter(m => m.region === r);
+  const top = list[0];
+  return top ? `${r === "전국" ? "전국" : r} 시장 ${list.length}곳! 여기 1등은 <b>${top.name}</b>(${top.tier}티어)야. 눌러 봐, 꿀꿀!` : "";
+}
+const TIPS = [
+  "현금 조금 챙기면 좋아. 온누리상품권 되는 가게도 많아!",
+  "오일장은 날짜가 정해져 있어. 끝자리 2·7일, 3·8일처럼 말이야.",
+  "지도에서 분홍 점은 내가 골라 둔 가게야. 눌러서 로드뷰로 봐!",
+  "티어는 데이터로 매긴 재미용이야. 진짜 맛은 네 혀가 정하는 거지, 꿀!",
+  "위에서 지역을 고르면 그 지역 1등 시장을 알려 줄게.",
+];
+let bubbleTimer;
+function pigSay(html) {
+  const b = document.getElementById("bubble");
+  b.innerHTML = html; b.classList.remove("hide");
+  window.pigTalkUntil = performance.now() + 2600;
+  clearTimeout(bubbleTimer);
+  bubbleTimer = setTimeout(() => b.classList.add("hide"), 9000);
+}
+window.pig = { hop(){} };  // 3D 로딩 전 대비
+let tour = null;
+document.getElementById("tourBtn").onclick = () => tour ? tour.open() : pigSay("3D를 불러오는 중이야, 잠깐만! 꿀");
+window.startTour = THREE => {
+  tour = initTour(THREE, {
+    markets: MK, geo: window.KOREA_GEO, tierColor: TIER_COLOR, pigSay,
+    openMarket: m => { region = "전국"; [...chips.children].forEach((c, i) => c.classList.toggle("on", i === 0)); select(m); },
+  });
+};
+document.getElementById("pig").onclick = () => { pigSay(TIPS[Math.floor(Math.random()*TIPS.length)]); pig.hop(); };
+
+render();
+if (MK.length) {
+  select(MK[0], true);
+  pigSay(`안녕! 난 시장 안내 돼지 <b>꿀돼지</b>야. 전국 ${MK.length}개 재래시장을 먹거리로 줄 세워 봤어. 1등은 <b>${MK[0].name}</b>! 시장을 눌러 봐.`);
+} else {
+  pigSay("데이터가 없어요. <b>python tools/fetch.py</b>를 먼저 실행해 주세요.");
+}
+</script>
+
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
+<script type="module">
+import * as THREE from "three";
+const canvas = document.getElementById("pig");
+const renderer = new THREE.WebGLRenderer({canvas, alpha:true, antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
+camera.position.set(0, 1.4, 6.2);
+camera.lookAt(0, 0.7, 0);
+scene.add(new THREE.HemisphereLight(0xfff1e0, 0x553322, 1.4));
+const sun = new THREE.DirectionalLight(0xffffff, 1.6); sun.position.set(3, 5, 4); scene.add(sun);
+const pig = buildPig(THREE); scene.add(pig.root);
+const shadow = new THREE.Mesh(new THREE.CircleGeometry(1.2, 32), new THREE.MeshBasicMaterial({color:0, transparent:true, opacity:.28}));
+shadow.rotation.x = -Math.PI/2; shadow.position.y = .01; scene.add(shadow);
+
+function resize() {
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
+}
+addEventListener("resize", resize); resize();
+
+let mx = 0, my = 0, hopT = -1, spin = 0;
+addEventListener("pointermove", e => { mx = e.clientX / innerWidth * 2 - 1; my = e.clientY / innerHeight * 2 - 1; });
+window.pig.hop = () => { hopT = 0; spin = Math.PI * 2; };
+
+const clock = new THREE.Clock();
+renderer.setAnimationLoop(() => {
+  if (document.body.classList.contains("touring")) return;
+  const t = clock.getElapsedTime();
+  let y = 0;
+  if (hopT >= 0) { hopT += 1/60; const k = hopT / .55; y = Math.max(0, Math.sin(Math.min(k,1) * Math.PI)) * .7; if (k >= 1) hopT = -1; }
+  pig.root.position.y = y;
+  shadow.scale.setScalar(1 - y * .5);
+  if (spin > 0) { const s = Math.min(spin, .18); spin -= s; pig.root.rotation.y += s; }
+  else pig.root.rotation.y += ((mx * .6 + .35) - pig.root.rotation.y) * .08;
+  pig.head.rotation.x += ((my * .25) - pig.head.rotation.x) * .08;
+  pig.animate(t, {talking: performance.now() < (window.pigTalkUntil || 0)});
+  renderer.render(scene, camera);
+});
+window.startTour(THREE);
+</script>
+</body>
+</html>

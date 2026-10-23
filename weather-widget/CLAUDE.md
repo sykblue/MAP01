@@ -54,7 +54,9 @@ window.WeatherWidget = {
 - 문서: https://open-meteo.com/en/docs
 - **API 키가 없다.** 프록시 서버 없이 브라우저에서 바로 호출한다. 주소만 `.env`로 뺀다(아래 "설정" 참고).
 - 무료 조건: 비상업적 용도만 허용된다. 한도는 하루 10,000회, 시간당 5,000회, 분당 600회다. 상업적 용도로 바뀌면 유료 플랜(키 사용)으로 옮겨야 한다.
-- 라이선스: 데이터는 CC BY 4.0이라 **출처 표기가 필수다.** 펼친 위젯 아래에 `날씨: Open-Meteo.com` 링크(https://open-meteo.com/)를 넣는다.
+- 라이선스: 데이터는 CC BY 4.0이라 **출처 표기가 필수다.** 출처 없이 남는 기간이 생기면 안 된다.
+  - 지금: 펼친 위젯 박스 안 오른쪽 아래에 작은 `Open-Meteo.com` 링크(https://open-meteo.com/)를 둔다.
+  - 할 일: 위젯을 호스트 페이지에 붙일 때 출처를 페이지 하단(푸터, `index.html`이라면 `.note` 문단)으로 옮기고, 같은 작업에서 위젯의 출처 링크를 지운다.
 
 ```
 {OPEN_METEO_URL}?latitude={lat}&longitude={lon}

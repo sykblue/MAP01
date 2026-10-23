@@ -413,6 +413,7 @@ footer{border-top:1px solid var(--page-line);padding:24px 0 40px;color:var(--pag
 .ki-foot{display:flex;gap:8px;align-items:center;font-size:12px}
 .ki-foot a{color:var(--accent)}
 .ki-foot button{margin-left:auto;background:var(--pig);color:#3a0f22;border:0;border-radius:999px;padding:5px 10px;font:inherit;font-weight:700;cursor:pointer;box-shadow:0 2px 0 var(--pig-deep)}
+.tour-card,.tour-near,.kinfo{color:#2a1d17;--muted:#7a6253}  /* 목록 페이지의 어두운 카드용 글자색이 이어지지 않게 */
 .tc-park{font-size:13px;color:#1f6fc4;margin:0 0 10px}
 .tc-park small{display:block;color:var(--muted);font-size:11px;margin-top:2px}
 .tour-top{position:absolute;top:12px;left:12px;right:12px;display:flex;gap:8px;align-items:flex-start;justify-content:space-between;pointer-events:none}

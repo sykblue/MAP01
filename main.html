@@ -134,6 +134,9 @@
 <script src="images.js"></script>
 <script src="medal.js"></script>
 <script src="pig.js"></script>
+<!-- 뽑기 카드에 사진이 없는 시장은 카카오 스카이뷰 위성 사진으로 채운다 -->
+<script src="kakaoAPI/env.js"></script>
+<script src="kakaoAPI/kakao-map.js"></script>
 <script>
 const DATA = window.MARKET_DATA || {meta:{}, markets:[]};
 const MK = DATA.markets;
@@ -225,6 +228,19 @@ $("rates").innerHTML = TIERS.map(([t, desc, rank]) => {
   const n = byTier(t).length;
   return `<li class="t-${t}">${medalSVG(t)}<span><b>${t} · ${rank}</b><small>${desc} · ${n}곳</small></span><em>${(n / MK.length * 100).toFixed(1)}%</em></li>`;
 }).join("");
+// 사진 없는 시장: 시장 위치의 카카오 스카이뷰 정지 지도를 사진 자리에 넣는다 (지도를 못 불러오면 티어 배지만 남는다)
+function skyPhoto(box, m) {
+  if (!window.KakaoMap) return;
+  KakaoMap.ready(() => {
+    if (!box.isConnected) return;  // 그사이 다시 뽑았으면 버린다
+    const el = document.createElement("div");
+    el.className = "gc-sky";
+    box.prepend(el);
+    const pos = new kakao.maps.LatLng(m.lat, m.lon);
+    new kakao.maps.StaticMap(el, {center: pos, level: 3, mapTypeId: kakao.maps.MapTypeId.HYBRID, marker: {position: pos}});
+    box.classList.replace("no-photo", "sky");  // 카카오 로고·저작권 표시는 가리지 않는다 (배지는 위로 옮김)
+  });
+}
 const RARE = {S: "✨ 전설 등장! ✨", A: "대박! A티어!", B: "괜찮은데? B티어!", C: "C티어, 동네 맛집이야", D: "D티어, 소소하지만 정겨워"};
 let drawing = false;
 $("drawBtn").onclick = () => {
@@ -236,17 +252,24 @@ $("drawBtn").onclick = () => {
   setTimeout(() => {
     const [, desc, rank] = TIERS.find(x => x[0] === m.tier);
     card.className = `gcard open t-${m.tier}`;
+    const img = IMG[imgKey(m)];
     card.innerHTML = `
       <div class="gcard-face">
-        <div class="gc-medal">${medalSVG(m.tier)}</div>
-        <span class="gc-rare">${RARE[m.tier]}</span>
-        <h3>${esc(m.name)}</h3>
-        <div class="gc-loc">${esc(m.sido || m.region)} ${esc(m.sgg || "")} · 전국 ${m.rank}위</div>
-        <div class="gc-sig">대표 <b>${esc(m.signature)}</b></div>
-        <h4>📜 퀘스트: 이 중 한 곳 먹고 오기</h4>
-        <ul class="loot">${picksList(m)}</ul>
-        <a class="g-btn mini" href="${link(m)}">지도에서 보기</a>
+        <div class="gc-photo${img ? "" : " no-photo"}">
+          ${img ? `<img src="${esc(img.src)}" alt="${esc(m.name)} 사진" onerror="this.parentNode.classList.add('no-photo');this.remove()"><span class="cr">${esc(img.credit || img.from)}</span>` : ""}
+          <span class="gc-medal">${medalSVG(m.tier)}</span>
+        </div>
+        <div class="gc-body">
+          <span class="gc-rare">${RARE[m.tier]}</span>
+          <h3>${esc(m.name)}</h3>
+          <div class="gc-loc">${esc(m.sido || m.region)} ${esc(m.sgg || "")} · 전국 ${m.rank}위</div>
+          <div class="gc-sig">대표 <b>${esc(m.signature)}</b></div>
+          <h4>📜 퀘스트: 이 중 한 곳 먹고 오기</h4>
+          <ul class="loot">${picksList(m)}</ul>
+          <a class="g-btn start gc-go" href="${link(m)}">지도에서 보기</a>
+        </div>
       </div>`;
+    if (!img) skyPhoto(card.querySelector(".gc-photo"), m);
     say(`${RARE[m.tier]} <b>${esc(m.name)}</b>! ${esc(m.signature)} 먹으러 가자, 꿀꿀~`);
     window.pig.hop();
     $("drawBtn").textContent = "🎲 다시 뽑기";

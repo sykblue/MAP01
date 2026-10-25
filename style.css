@@ -142,7 +142,7 @@ footer{border-top:1px solid var(--divider);padding:24px 0 40px;color:var(--muted
 .sbar div{height:4px;border-radius:999px;background:var(--divider);overflow:hidden}
 .sbar i{display:block;height:100%;border-radius:inherit;background:var(--n700)}
 .sbar b{text-align:right;font-weight:600}
-.boss h4,.gcard h4{margin:8px 0 0;font-size:14px;font-weight:700}
+.boss h4{margin:8px 0 0;font-size:14px;font-weight:700}
 .loot{list-style:none;margin:0 0 6px;padding:0;border-top:1px solid var(--divider)}
 .loot li{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--divider);padding:8px 0;font-size:14px}
 .loot li b{flex:none;font-weight:600}
@@ -153,23 +153,42 @@ footer{border-top:1px solid var(--divider);padding:24px 0 40px;color:var(--muted
 .more{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-top:24px;padding:14px 16px;background:var(--n25);border:1px solid var(--divider);border-radius:4px;color:var(--muted);font-size:14px}
 
 /* 시장 뽑기 */
-.gacha{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:40px;align-items:center}
-@media (max-width:860px){.gacha{grid-template-columns:1fr}}
-.gacha-stage{display:flex;flex-direction:column;align-items:center;gap:18px}
-.gcard{width:min(340px,100%);min-height:420px;perspective:800px;transition:transform .4s}
+.gacha{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:48px;align-items:center}
+@media (max-width:860px){.gacha{grid-template-columns:1fr;gap:32px}}
+.gacha-stage{display:flex;flex-direction:column;align-items:center;gap:20px}
+.gcard{width:min(460px,100%);min-height:560px;perspective:800px;transition:transform .4s}
 .gcard.flip{transform:rotateY(90deg)}
 /* 뽑기 카드는 화면에서 하나뿐인 큰 곡면 카드(20px) */
-.gcard-back{height:420px;border-radius:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:var(--n50);border:1px solid var(--divider)}
-.gcard-back b{font-size:96px;font-weight:800;line-height:1;color:var(--n200)}
-.gcard-back span{color:var(--muted);font-size:14px}
-.gcard-face{background:#fff;border:1px solid var(--line);border-radius:20px;padding:20px 18px 18px;box-shadow:var(--float);animation:pop .3s ease-out}
+.gcard-back{height:560px;border-radius:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:var(--n50);border:1px solid var(--divider)}
+.gcard-back b{font-size:128px;font-weight:800;line-height:1;color:var(--n200)}
+.gcard-back span{color:var(--muted);font-size:16px}
+.gcard-face{background:#fff;border:1px solid var(--line);border-radius:20px;overflow:hidden;box-shadow:var(--float);animation:pop .3s ease-out}
 @keyframes pop{from{transform:scale(.96);opacity:.5}}
-.gc-medal{display:flex;justify-content:center;margin-bottom:4px}
-.gc-medal .medal{width:40px;height:40px;font-size:20px}
-.gc-rare{display:block;text-align:center;font-size:13px;font-weight:700;color:var(--blue)}
-.gcard h3{margin:6px 0 2px;text-align:center;font-size:22px}
-.gc-loc,.gc-sig{text-align:center;font-size:14px;color:var(--muted)}
+/* 카드 위쪽 사진 (없으면 연회색 면 + 큰 티어 배지) */
+.gc-photo{position:relative;aspect-ratio:16/10;background:var(--n50)}
+.gc-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.gc-photo .cr{position:absolute;right:8px;bottom:8px;max-width:60%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:#fff;background:rgba(0,0,0,.45);border-radius:2px;padding:1px 6px}
+.gc-medal{position:absolute;left:16px;bottom:-24px}
+.gc-medal .medal{width:48px;height:48px;font-size:24px;border-radius:6px;border:3px solid #fff}
+.gc-sky{position:absolute;inset:0}
+.gc-sky a{pointer-events:none}          /* 정지 지도를 눌러 카카오맵으로 나가지 않게 */
+.gc-photo.sky .gc-medal{top:12px;bottom:auto;left:12px}   /* 아래쪽 카카오 로고를 가리지 않게 */
+.gc-photo.sky + .gc-body{padding-top:20px}
+.gc-photo.no-photo{display:grid;place-items:center}
+.gc-photo.no-photo .gc-medal{position:static}
+.gc-photo.no-photo .gc-medal .medal{width:88px;height:88px;font-size:44px;border:0}
+.gc-body{padding:32px 24px 24px}
+.gc-photo.no-photo + .gc-body{padding-top:20px}
+.gc-rare{display:block;font-size:15px;font-weight:700;color:var(--blue)}
+.gcard h3{margin:6px 0 4px;font-size:30px;font-weight:800}
+.gc-loc,.gc-sig{font-size:16px;color:var(--muted)}
+.gc-sig{margin-top:2px}
 .gc-sig b{color:var(--ink);font-weight:600}
+.gcard h4{margin:20px 0 8px;font-size:16px}
+.gcard .loot li{padding:12px 0;font-size:16px}
+.gcard .loot li span{font-size:14px}
+.gc-go{width:100%;margin-top:16px;padding:14px 20px;font-size:16px}
+#drawBtn{padding:14px 36px;font-size:16px}
 .gacha-info p{color:var(--muted);line-height:1.6;margin:0 0 20px;font-size:14px}
 .gacha-info h3{font-size:16px;margin:0 0 8px}
 .rates{list-style:none;margin:0;padding:0;max-width:440px;border-top:1px solid var(--divider)}

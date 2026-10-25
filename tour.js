@@ -1,7 +1,13 @@
 // 돼지 스카이뷰 투어: 카카오 지도(스카이뷰) 위를 돼지가 날아다니며 지역별 1등 시장을 안내한다.
 // 지도는 카카오맵 JavaScript API, 돼지는 three.js로 지도 위 투명 캔버스(화면 가운데)에 그린다.
 window.initTour = function (THREE, api) {
-  const {markets, tierColor, pigSay, openMarket, parkOf = () => [], infoOf = () => ({})} = api;
+  const {markets, tierColor, pigSay, openMarket, parkOf = () => [], infoOf = () => ({}), imgOf = () => null} = api;
+  const narrow = () => innerWidth <= 600;
+  // 시장 사진 (images.js). 없으면 빈 문자열 — 지도가 이미 위성 사진이라 대신 채우지 않는다
+  const photo = (m, cls) => {
+    const img = imgOf(m);
+    return img ? `<div class="${cls}"><img src="${esc(img.src)}" alt="${esc(m.name)} 사진" onerror="this.parentNode.remove()"><span class="cr">${esc(img.credit || img.from || "")}</span></div>` : "";
+  };
   const K = kakao.maps;
   const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c]);
   const parkText = m => {
@@ -108,15 +114,19 @@ window.initTour = function (THREE, api) {
     if (infoFor === m) return;
     hideInfo(); infoFor = m;
     const inf = infoOf(m), box = document.createElement("div");
-    box.className = "kinfo";
+    box.className = "kinfo" + (narrow() ? "" : " side");
     box.innerHTML = `
+      ${photo(m, "ki-photo")}
       <div class="ki-body">
         <div class="ki-head"><b>${esc(m.name)}</b><span class="tier-bg-${m.tier}">${m.tier}</span></div>
         <p>${esc(descOf(m))}</p>
         <div class="ki-foot">${inf.url ? `<a href="${esc(inf.url)}" target="_blank" rel="noopener">위키백과</a>` : ""}<button>상세·로드뷰</button></div>
       </div>`;
     box.querySelector("button").onclick = () => leaveTo(m);
-    infoOv = new K.CustomOverlay({map, position: at(m), content: box, yAnchor: 1.08, zIndex: 6});
+    // 사진이 들어가 말풍선이 커서: 넓은 화면은 시장 점 왼쪽 옆, 좁은 화면은 위쪽
+    infoOv = new K.CustomOverlay(narrow()
+      ? {map, position: at(m), content: box, yAnchor: 1.06, zIndex: 6}
+      : {map, position: at(m), content: box, xAnchor: 1.06, yAnchor: .5, zIndex: 6});
   }
 
   // 이동 상태
@@ -148,16 +158,19 @@ window.initTour = function (THREE, api) {
     setTimeout(() => {
       if (move || free || STOPS[idx] !== stop) return;
       const proj = map.getProjection(), p = proj.containerPointFromCoords(at(top));
-      map.panTo(proj.coordsFromContainerPoint(new K.Point(p.x, p.y + 150)));
+      map.panTo(proj.coordsFromContainerPoint(new K.Point(p.x, p.y + (narrow() ? 100 : 150))));
     }, 600);
     showInfo(top);
     const counts = ["S","A","B","C","D"].map(t => [t, list.filter(m => m.tier === t).length]).filter(([, n]) => n);
     card.innerHTML = `
-      <div class="tc-head"><span>${idx + 1} / ${STOPS.length}</span><h3>${FULL[stop.region]}</h3></div>
-      <div class="tc-tiers">${counts.map(([t, n]) => `<span class="tier-bg-${t}">${t} ${n}</span>`).join("")}</div>
-      <ol>${list.slice(0, 3).map(m => `<li data-n="${m.name}"><b>${m.name}</b> <i class="tier-fg-${m.tier}">${m.tier}</i><small>${m.signature}</small></li>`).join("")}</ol>
-      <div class="tc-park">🅿️ ${esc(parkText(top))}${parkOf(top).length ? "<small>지도의 파란 P와 줄이 주차장이에요</small>" : ""}</div>
-      <button class="tc-go">🐽 ${top.name} 맛집 로드뷰 보기</button>`;
+      ${photo(top, "tc-photo")}
+      <div class="tc-body">
+        <div class="tc-head"><span>${idx + 1} / ${STOPS.length}</span><h3>${FULL[stop.region]}</h3><small>시장 ${list.length}곳</small></div>
+        <div class="tc-tiers">${counts.map(([t, n]) => `<span class="tier-bg-${t}">${t} ${n}</span>`).join("")}</div>
+        <ol>${list.slice(0, 3).map(m => `<li data-n="${esc(m.name)}"><b>${esc(m.name)}</b> <i class="tier-bg-${m.tier}">${m.tier}</i><small>${esc(m.signature)}</small></li>`).join("")}</ol>
+        <div class="tc-park"><span class="pmk">P</span><span>${esc(parkText(top))}${parkOf(top).length ? "<small>지도의 파란 P와 줄이 주차장이에요</small>" : ""}</span></div>
+        <button class="tc-go">${esc(top.name)} 상세·로드뷰 보기</button>
+      </div>`;
     card.querySelectorAll("li").forEach(li => li.onclick = () => leaveTo(list.find(m => m.name === li.dataset.n)));
     card.querySelector(".tc-go").onclick = () => leaveTo(top);
     card.classList.remove("hide");

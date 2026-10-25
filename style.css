@@ -417,47 +417,71 @@ footer{border-top:1px solid var(--divider);padding:24px 0 40px;color:var(--muted
 .kdot{width:12px;height:12px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.35);cursor:pointer}
 .kdot.top{width:18px;height:18px;box-shadow:0 0 0 1px rgba(0,0,0,.45),0 0 0 4px rgba(255,255,255,.7)}
 .klabel{font-family:var(--font);font-size:15px;font-weight:800;white-space:nowrap;pointer-events:none;text-shadow:0 0 3px #fff,0 0 3px #fff,0 0 6px #fff,0 0 6px #fff}
-.pmk{width:20px;height:20px;border-radius:4px;background:var(--park);color:#08223d;border:2px solid var(--n900);font:700 12px/16px var(--font);text-align:center}
+.pmk{flex:none;display:inline-block;width:20px;height:20px;border-radius:4px;background:var(--park);color:#08223d;border:2px solid var(--n900);font:700 12px/16px var(--font);text-align:center}
 .tour-card,.tour-near,.kinfo{color:var(--ink);--muted:var(--n400)}
-.kinfo{width:240px;background:#fff;border:1px solid var(--divider);border-radius:8px;overflow:hidden;font-family:var(--font);box-shadow:var(--float)}
-.ki-body{padding:12px 14px}
+/* 사진 공통: 위쪽에 꽉 차게, 오른쪽 아래에 출처 */
+.ki-photo,.tc-photo{position:relative;aspect-ratio:16/9;background:var(--n50);overflow:hidden}
+.ki-photo img,.tc-photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.ki-photo .cr,.tc-photo .cr{position:absolute;right:6px;bottom:6px;max-width:70%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px;color:#fff;background:rgba(0,0,0,.45);border-radius:2px;padding:1px 5px}
+.ki-photo .cr:empty,.tc-photo .cr:empty{display:none}
+
+/* 시장 정보 말풍선 (지도 위) */
+.kinfo{width:280px;background:#fff;border:1px solid var(--divider);border-radius:8px;overflow:hidden;font-family:var(--font);box-shadow:var(--float)}
+.ki-body{padding:12px 14px 14px}
 .ki-head{display:flex;gap:6px;align-items:center;justify-content:space-between}
-.ki-head b{font-size:16px;font-weight:700}
-.ki-head span{color:#fff;border-radius:2px;padding:1px 6px;font-size:12px;font-weight:800}
-.kinfo p{margin:6px 0 10px;font-size:13px;line-height:1.55;color:var(--n550);white-space:normal;display:-webkit-box;-webkit-line-clamp:4;line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.ki-head b{font-size:18px;font-weight:700}
+.ki-head span{flex:none;display:inline-grid;place-items:center;width:22px;height:22px;color:#fff;border-radius:4px;font-size:12px;font-weight:800}
+.kinfo p{margin:6px 0 12px;font-size:13px;line-height:1.6;color:var(--n550);white-space:normal;display:-webkit-box;-webkit-line-clamp:4;line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
 .ki-foot{display:flex;gap:8px;align-items:center;font-size:12px}
 .ki-foot a{color:var(--muted)}
-.ki-foot button{margin-left:auto;background:var(--blue);color:#fff;border:0;border-radius:6px;padding:6px 12px;font-size:13px;font-weight:600;cursor:pointer}
-.tc-park{font-size:13px;color:var(--ink);margin:0 0 12px;padding-top:10px;border-top:1px solid var(--divider)}
-.tc-park small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+.ki-foot button{margin-left:auto;background:var(--blue);color:#fff;border:0;border-radius:6px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer}
+.ki-foot button:hover{background:var(--blue-600)}
+
+/* 위쪽: 지역 알약 막대 + 닫기 */
 .tour-top{position:absolute;top:12px;left:12px;right:12px;display:flex;gap:8px;align-items:flex-start;justify-content:space-between;pointer-events:none}
 .tour-top>*{pointer-events:auto}
-.tour-dots{display:flex;flex-wrap:wrap;gap:4px;max-width:calc(100% - 60px)}
-.tour-dots button,.tour-ctrl button,.tour-pad button{background:#fff;color:var(--ink);border:1px solid var(--divider);border-radius:99px;padding:6px 12px;font-size:13px;font-weight:600;cursor:pointer;box-shadow:var(--arrow)}
-.tour-dots button:hover,.tour-ctrl button:hover{border-color:var(--n300)}
-.tour-dots button.on{background:var(--blue);color:#fff;border-color:var(--blue)}
-.t-close{width:40px;height:40px;border-radius:50%;border:1px solid var(--divider);background:#fff;font-size:15px;cursor:pointer;box-shadow:var(--arrow)}
-.tour-card{position:absolute;right:12px;top:110px;width:min(300px,calc(100vw - 24px));background:#fff;border:1px solid var(--divider);border-radius:8px;padding:16px;box-shadow:var(--float);transition:opacity .25s,transform .25s}
+.tour-dots{display:flex;flex-wrap:wrap;gap:2px;max-width:calc(100% - 56px);background:#fff;border:1px solid var(--divider);border-radius:22px;padding:4px;box-shadow:var(--arrow)}
+.tour-dots button{background:none;color:var(--ink);border:0;border-radius:99px;padding:6px 11px;font-size:14px;font-weight:600;cursor:pointer;transition:opacity .2s}
+@media (hover:hover) and (pointer:fine){.tour-dots button:not(.on):hover{opacity:.4}}
+.tour-dots button.on{background:var(--blue);color:#fff;font-weight:700}
+.t-close{flex:none;width:44px;height:44px;border-radius:50%;border:1px solid var(--divider);background:#fff;color:var(--ink);font-size:16px;cursor:pointer;box-shadow:var(--arrow)}
+
+/* 오른쪽: 지역 카드 (1등 시장 사진 + 순위 + 주차장 + 버튼) */
+.tour-card{position:absolute;right:12px;top:76px;width:min(320px,calc(100vw - 24px));max-height:calc(100vh - 150px);overflow:auto;background:#fff;border:1px solid var(--divider);border-radius:8px;box-shadow:var(--float);transition:opacity .25s,transform .25s}
 .tour-card.hide,.tour-near.hide{opacity:0;transform:translateY(-8px);pointer-events:none}
-.tc-head span{font-size:12px;color:var(--muted)}
-.tc-head h3{margin:2px 0 10px;font-size:22px}
-.tc-tiers{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px}
+.tc-body{padding:14px 16px 16px}
+.tc-head{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
+.tc-head span{width:100%;font-size:12px;color:var(--muted)}
+.tc-head h3{margin:0;font-size:22px}
+.tc-head small{font-size:13px;color:var(--muted)}
+.tc-tiers{display:flex;gap:4px;flex-wrap:wrap;margin:10px 0 12px}
 .tc-tiers span{color:#fff;border-radius:2px;padding:1px 6px;font-size:11px;font-weight:700}
-.tour-card ol{margin:0 0 10px;padding-left:18px;display:grid;gap:6px}
-.tour-card li{cursor:pointer;font-size:14px}
-.tour-card li::marker{color:var(--red);font-weight:700}
-.tour-card li:hover b{text-decoration:underline}
-.tour-card li i,.tour-near b{font-style:normal;font-weight:800}
-.tour-card li small{display:block;color:var(--muted);font-size:12px}
-.tc-go{width:100%;background:var(--blue);color:#fff;border:0;border-radius:6px;padding:11px;font-size:15px;font-weight:600;cursor:pointer}
+.tour-card ol{margin:0;padding:0;list-style:none;counter-reset:rk;border-top:1px solid var(--divider)}
+.tour-card li{counter-increment:rk;display:grid;grid-template-columns:22px minmax(0,1fr) auto;grid-template-areas:"n name tier" "n sig sig";column-gap:8px;align-items:center;padding:9px 0;border-bottom:1px solid var(--cg50);cursor:pointer}
+.tour-card li::before{content:counter(rk);grid-area:n;font-size:16px;font-weight:700;color:var(--red);text-align:center}
+.tour-card li b{grid-area:name;font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tour-card li i{grid-area:tier;display:inline-grid;place-items:center;width:20px;height:20px;border-radius:4px;color:#fff;font-style:normal;font-size:11px;font-weight:800}
+.tour-card li small{grid-area:sig;font-size:12px;color:var(--muted)}
+@media (hover:hover) and (pointer:fine){.tour-card li:hover b{text-decoration:underline}}
+.tc-park{display:flex;gap:8px;align-items:flex-start;font-size:13px;margin:12px 0;padding:10px 12px;background:var(--n25);border:1px solid var(--divider);border-radius:4px}
+.tc-park small{display:block;color:var(--muted);font-size:12px;margin-top:2px}
+.tc-go{width:100%;background:var(--blue);color:#fff;border:0;border-radius:6px;padding:12px;font-size:15px;font-weight:600;cursor:pointer}
 .tc-go:hover{background:var(--blue-600)}
-.tour-ctrl{position:absolute;right:12px;bottom:14px;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
-.tour-near{position:absolute;left:50%;top:70px;transform:translateX(-50%);background:#fff;border:1px solid var(--divider);border-radius:99px;padding:6px 6px 6px 14px;display:flex;gap:8px;align-items:center;font-size:14px;white-space:nowrap;max-width:calc(100vw - 24px);overflow:hidden;box-shadow:var(--float);transition:opacity .2s}
+
+/* 가까운 시장 알림 (자유 비행) */
+.tour-near{position:absolute;left:50%;top:76px;transform:translateX(-50%);background:#fff;border:1px solid var(--divider);border-radius:99px;padding:6px 6px 6px 14px;display:flex;gap:8px;align-items:center;font-size:14px;white-space:nowrap;max-width:calc(100vw - 24px);overflow:hidden;box-shadow:var(--float);transition:opacity .2s}
+.tour-near b{font-weight:800}
 .tour-near button{background:var(--blue);color:#fff;border:0;border-radius:99px;padding:5px 12px;font-size:13px;font-weight:600;cursor:pointer}
+
+/* 아래: 조작 막대 (이전·자동·다음·자유 비행) */
+.tour-ctrl{position:absolute;right:12px;bottom:14px;display:flex;gap:2px;flex-wrap:wrap;justify-content:flex-end;background:#fff;border:1px solid var(--divider);border-radius:22px;padding:4px;box-shadow:var(--arrow)}
+.tour-ctrl button{background:none;color:var(--ink);border:0;border-radius:99px;padding:7px 12px;font-size:14px;font-weight:600;cursor:pointer}
+.tour-ctrl button:hover{background:var(--n50)}
+#tour.free .t-free{background:var(--blue);color:#fff}
 .tour-pad{position:absolute;left:50%;bottom:64px;transform:translateX(-50%);display:none;grid-template-columns:repeat(3,52px);gap:6px}
-.tour-pad button{height:46px;font-size:18px;border-radius:8px;touch-action:none;user-select:none}
+.tour-pad button{height:46px;font-size:18px;border-radius:8px;background:#fff;color:var(--ink);border:1px solid var(--divider);box-shadow:var(--arrow);touch-action:none;user-select:none;cursor:pointer}
 #tour.free .tour-pad{display:grid}
-.tour-help{position:absolute;left:12px;bottom:14px;color:var(--n550);font-size:12px;background:rgba(255,255,255,.9);padding:4px 10px;border-radius:99px}
+.tour-help{position:absolute;left:12px;bottom:14px;color:var(--n550);font-size:12px;background:rgba(255,255,255,.92);padding:5px 12px;border-radius:99px}
 body.touring #pig{display:none}
 body.touring #bubble{left:50%;right:auto;bottom:max(90px,12vh);transform:translateX(-50%);z-index:2000;max-width:min(460px,calc(100vw - 24px))}
 body.touring #bubble.hide{transform:translate(-50%,8px)}
@@ -465,13 +489,22 @@ body.touring #bubble::before{display:none}
 body.touring #tour.free ~ #bubble{bottom:190px}
 @media (max-width:600px){
   .tour-dots{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+  .tour-dots::-webkit-scrollbar{display:none}
   .tour-dots button{flex:none}
-  .tour-card{top:62px;right:12px;padding:12px}
-  .tour-card ol{display:none}
-  .tc-head h3{font-size:18px;margin-bottom:6px}
+  /* 좁은 화면: 지역 카드는 아래쪽 조작 막대 위에 얇게 깔고, 사진·설명은 지도 말풍선(위쪽)에서 본다 */
+  .tour-card{top:auto;bottom:66px;left:12px;right:12px;width:auto;max-height:none}
+  .tour-card .tc-photo,.tour-card ol,.tc-park{display:none}
+  .tc-body{padding:12px}
+  .tc-head h3{font-size:18px}
+  .tc-tiers{margin:8px 0 10px}
+  .tc-go{padding:10px}
+  .kinfo{width:240px}
+  .ki-photo{aspect-ratio:16/6}
+  .kinfo p{-webkit-line-clamp:3;line-clamp:3;margin-bottom:10px}
+  #tour .tour-pig{width:200px;height:200px}
   .tour-help{display:none}
-  body.touring #bubble{bottom:62px}
+  body.touring #bubble{bottom:220px}
   body.touring #tour.free ~ #bubble{bottom:222px}
-  .tour-near{top:62px}
+  .tour-near{top:66px}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;scroll-behavior:auto!important}}

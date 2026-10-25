@@ -514,6 +514,7 @@ window.startTour = THREE => KakaoMap.ready(() => {
   tour = initTour(THREE, {
     markets: MK, tierColor: TIER_COLOR, pigSay, parkOf,
     infoOf: m => (window.MARKET_INFO || {})[`${m.region} ${m.name}`] || {},
+    imgOf: m => IMG[imgKey(m)],
     openMarket: m => { setRegion("전국"); select(m); },
   });
 });

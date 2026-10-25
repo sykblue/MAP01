@@ -15,7 +15,13 @@ const MEDAL = {
 let medalN = 0;
 const ngon = (n, r, cx = 70, cy = 82) => Array.from({length:n}, (_, i) => { const a = Math.PI * 2 * i / n - Math.PI / 2; return `${(cx + r * Math.cos(a)).toFixed(1)},${(cy + r * Math.sin(a)).toFixed(1)}`; }).join(" ");
 const starPts = (n, R, r, cx = 70, cy = 80) => Array.from({length:n * 2}, (_, i) => { const a = Math.PI * i / n - Math.PI / 2, k = i % 2 ? r : R; return `${(cx + k * Math.cos(a)).toFixed(1)},${(cy + k * Math.sin(a)).toFixed(1)}`; }).join(" ");
+// 화면에 쓰는 티어 표시: 평평한 사각 배지 (티어 색은 style.css의 .tier-bg-*)
 function medalSVG(t) {
+  return `<span class="medal tier-bg-${t}" aria-hidden="true">${t}</span>`;
+}
+
+// 예전 게임풍 메달 그림. 지금 화면에서는 쓰지 않지만 필요할 때 다시 쓸 수 있게 둔다
+function medalArtSVG(t) {
   const c = MEDAL[t], id = "md" + (medalN++), g = (k, [a, b]) => `<linearGradient id="${id}${k}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient>`;
   const u = k => `url(#${id}${k})`;
   const wing = `<g fill="${c.wing}" stroke="#fff" stroke-width="1.5"><path d="M30,64 C10,56 2,38 6,26 C14,42 22,50 34,54Z"/><path d="M30,78 C8,74 0,58 2,46 C12,60 22,66 32,68Z"/><path d="M32,92 C14,92 6,80 6,70 C16,80 24,84 34,84Z"/></g>`;
